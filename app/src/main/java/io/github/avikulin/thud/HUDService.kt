@@ -63,6 +63,7 @@ import io.github.avikulin.thud.ui.editor.WorkoutEditorActivityNew
 import io.github.avikulin.thud.service.garmin.GarminConnectUploader
 import io.github.avikulin.thud.util.FileExportHelper
 import io.github.avikulin.thud.util.FitFileExporter
+import io.github.avikulin.thud.util.KdkHa
 import java.io.File
 
 import io.github.avikulin.thud.util.DfaAlpha1Calculator
@@ -337,6 +338,11 @@ class HUDService : Service(),
         GarminConnectUploader.updatePrefsName(ProfileManager.garminPrefsName(activeProfile.id))
         GarminConnectUploader.migrateFromLegacy(applicationContext)
         FileExportHelper.activeProfileSubfolder = ProfileManager.downloadsSubfolder(activeProfile.name)
+
+        // kdk-lab HA integration: load optional webhook config and announce the active profile.
+        // No-op when kdk-ha.conf is absent / webhook_url is empty.
+        KdkHa.init(applicationContext)
+        KdkHa.emitProfile(activeProfile.name)
 
         // Initialize window manager and get screen dimensions
         windowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
@@ -654,6 +660,9 @@ class HUDService : Service(),
         workoutStartTimeMs = System.currentTimeMillis()
         workoutDataExported = false  // Reset export flag for new session
         lastWorkoutName = null  // Clear stored workout name
+
+        // kdk-lab HA integration: announce run start for the active profile (no-op if disabled).
+        KdkHa.emitRunStart(ProfileManager.getActiveProfile(applicationContext).name)
         lastTrainingMetricsUpdateMs = 0  // Reset to trigger immediate update
 
         // Update screenshot manager with new run info (if enabled, it keeps taking screenshots)
@@ -862,6 +871,17 @@ class HUDService : Service(),
 
         // Mark as exported BEFORE async operation to prevent race conditions
         workoutDataExported = true
+
+        // kdk-lab HA integration: announce run end for the active profile (no-op if disabled).
+        // distance/duration come from the last recorded data point (cumulative km + elapsed ms).
+        val lastPoint = snapshot.workoutData.lastOrNull()
+        val distanceMeters = lastPoint?.distanceKm?.let { (it * 1000).toInt() }
+        val durationSeconds = lastPoint?.elapsedMs?.let { (it / 1000).toInt() }
+        KdkHa.emitRunEnd(
+            ProfileManager.getActiveProfile(applicationContext).name,
+            distanceMeters,
+            durationSeconds
+        )
 
         // Export in background to avoid blocking UI
         serviceScope.launch(Dispatchers.IO) {
@@ -1488,6 +1508,9 @@ class HUDService : Service(),
 
         // Set the new active profile — service will reinit with correct paths on restart
         ProfileManager.setActiveProfile(applicationContext, profileId)
+
+        // kdk-lab HA integration: announce the newly-active profile (no-op if disabled).
+        KdkHa.emitProfile(ProfileManager.getActiveProfile(applicationContext).name)
 
         // Schedule service restart — posted to main looper, executes after stopSelf() completes
         val appContext = applicationContext

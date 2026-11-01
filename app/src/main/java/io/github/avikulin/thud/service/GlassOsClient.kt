@@ -69,21 +69,51 @@ class GlassOsClient(
         private val CLIENT_ID_KEY: Metadata.Key<String> =
             Metadata.Key.of("client_id", Metadata.ASCII_STRING_MARSHALLER)
 
+        private val REQUIRED_CERT_FILES = listOf(CA_CERT_FILE, CLIENT_CERT_FILE, CLIENT_KEY_FILE)
+
+        private fun hasAllCerts(dir: File): Boolean =
+            REQUIRED_CERT_FILES.all { File(dir, it).exists() }
+
+        /**
+         * Resolves the directory holding the mTLS certs.
+         *
+         * Prefers the app's INTERNAL files dir (/data/data/io.github.avikulin.thud/files/certs):
+         * on Android 13 certs pushed via adb to the EXTERNAL scoped-storage dir are invisible to
+         * the app (no root to chown), but the internal dir is always readable by the app and can
+         * be populated via `run-as`.
+         *
+         * Falls back to the legacy EXTERNAL files dir only when the internal dir does not contain
+         * all three cert files. If neither location has a complete set, returns the internal dir
+         * (creating it) so the "missing certs" error points at the recommended location.
+         */
         fun getCertsDirectory(context: Context): File {
-            val externalFilesDir = context.getExternalFilesDir(null)
-                ?: throw IllegalStateException("External files directory not available")
-            val certsDir = File(externalFilesDir, CERTS_SUBDIR)
-            // Create directory if it doesn't exist (simplifies setup - users can just push certs)
-            if (!certsDir.exists()) {
-                certsDir.mkdirs()
+            val internalCertsDir = File(context.filesDir, CERTS_SUBDIR)
+            if (hasAllCerts(internalCertsDir)) {
+                Log.i(TAG, "Using INTERNAL certs dir: ${internalCertsDir.absolutePath}")
+                return internalCertsDir
             }
-            return certsDir
+
+            val externalFilesDir = context.getExternalFilesDir(null)
+            if (externalFilesDir != null) {
+                val externalCertsDir = File(externalFilesDir, CERTS_SUBDIR)
+                if (hasAllCerts(externalCertsDir)) {
+                    Log.i(TAG, "Using EXTERNAL certs dir: ${externalCertsDir.absolutePath}")
+                    return externalCertsDir
+                }
+            }
+
+            // Neither location has a complete set. Default to internal (create it) so setup via
+            // `run-as` lands in the dir the app will read first.
+            if (!internalCertsDir.exists()) {
+                internalCertsDir.mkdirs()
+            }
+            Log.w(TAG, "Certs incomplete in both locations; defaulting to INTERNAL certs dir: ${internalCertsDir.absolutePath}")
+            return internalCertsDir
         }
 
         fun getMissingCertificates(context: Context): List<String> {
             val certsDir = getCertsDirectory(context)
-            val requiredFiles = listOf(CA_CERT_FILE, CLIENT_CERT_FILE, CLIENT_KEY_FILE)
-            return requiredFiles.filter { !File(certsDir, it).exists() }
+            return REQUIRED_CERT_FILES.filter { !File(certsDir, it).exists() }
         }
 
         fun areCertificatesInstalled(context: Context): Boolean = getMissingCertificates(context).isEmpty()
