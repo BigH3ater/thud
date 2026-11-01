@@ -1,366 +1,217 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  MackTrack / Kodiak trimmed HUD.
+  One row: Resume · Speed(mph) · Incline · Distance(mi) · Calories · User · ⚙ · ✕
+  IDs preserved from upstream so HUDDisplayManager binds them (all findViewById are
+  null-safe, so the dropped tiles — pace/HR/DFA/footpod/time/climb/TSS and the
+  camera/chart/bluetooth/remote/workouts buttons — simply resolve to null).
+-->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/hud_background"
-    android:orientation="vertical"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
     android:padding="@dimen/hud_padding">
 
-    <!-- All boxes in one row -->
+    <!-- Resume / Start (opens the pace popup — the vetted start path) -->
+    <TextView
+        android:id="@+id/btnResume"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_marginEnd="@dimen/box_margin"
+        android:gravity="center"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:background="@drawable/kdk_resume_bg"
+        android:clickable="true"
+        android:focusable="true"
+        android:text="@string/btn_resume_start"
+        android:textColor="@color/kdk_ink"
+        android:textStyle="bold"
+        android:textSize="22sp"
+        android:fontFamily="sans-serif-condensed" />
+
+    <!-- Speed (mph) — touchable: opens pace popup -->
     <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:orientation="horizontal">
+        android:id="@+id/paceBox"
+        style="@style/HudBox.Interactive"
+        android:background="@drawable/kdk_tile_bg"
+        android:layout_marginStart="@dimen/box_margin"
+        android:layout_marginEnd="@dimen/box_margin">
 
-        <!-- Pace Box (touchable) -->
-        <LinearLayout
-            android:id="@+id/paceBox"
-            style="@style/HudBox.Interactive"
-            android:layout_marginEnd="@dimen/box_margin">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/label_speed"
+            style="@style/HudText.Label" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/label_pace"
-                style="@style/HudText.Label" />
+        <TextView
+            android:id="@+id/tvRawSpeed"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/default_raw_speed"
+            android:textColor="@color/kdk_info"
+            style="@style/HudText.Value" />
 
-            <TextView
-                android:id="@+id/tvPace"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/default_pace"
-                style="@style/HudText.Value" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/unit_mph"
+            style="@style/HudText.Unit" />
+    </LinearLayout>
 
-            <TextView
-                android:id="@+id/tvRawSpeed"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/default_raw_speed"
-                style="@style/HudText.Unit" />
-        </LinearLayout>
+    <!-- Incline (%) — touchable: opens incline popup -->
+    <LinearLayout
+        android:id="@+id/inclineBox"
+        style="@style/HudBox.Interactive"
+        android:background="@drawable/kdk_tile_bg"
+        android:layout_marginStart="@dimen/box_margin"
+        android:layout_marginEnd="@dimen/box_margin">
 
-        <!-- Incline Box (touchable) -->
-        <LinearLayout
-            android:id="@+id/inclineBox"
-            style="@style/HudBox.Interactive"
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/label_incline"
+            style="@style/HudText.Label" />
+
+        <TextView
+            android:id="@+id/tvIncline"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/default_incline"
+            android:textColor="@color/kdk_warn"
+            style="@style/HudText.Value" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/unit_percent"
+            style="@style/HudText.Unit" />
+    </LinearLayout>
+
+    <!-- Distance (mi) -->
+    <LinearLayout
+        style="@style/HudBox.Data"
+        android:background="@drawable/kdk_tile_bg"
+        android:layout_marginStart="@dimen/box_margin"
+        android:layout_marginEnd="@dimen/box_margin">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/label_distance"
+            style="@style/HudText.Label" />
+
+        <TextView
+            android:id="@+id/tvDistance"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/default_distance"
+            android:textColor="@color/kdk_green"
+            style="@style/HudText.Value" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/unit_mi"
+            style="@style/HudText.Unit" />
+    </LinearLayout>
+
+    <!-- Calories (kcal) -->
+    <LinearLayout
+        style="@style/HudBox.Data"
+        android:background="@drawable/kdk_tile_bg"
+        android:layout_marginStart="@dimen/box_margin"
+        android:layout_marginEnd="@dimen/box_margin">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/label_calories"
+            style="@style/HudText.Label" />
+
+        <TextView
+            android:id="@+id/tvCalories"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/default_calories"
+            android:textColor="@color/kdk_ember"
+            style="@style/HudText.Value" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/unit_kcal"
+            style="@style/HudText.Unit" />
+    </LinearLayout>
+
+    <!-- User chip (active profile → synced to HA walker) -->
+    <LinearLayout
+        android:id="@+id/btnUser"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginStart="@dimen/box_margin"
+        android:paddingStart="12dp"
+        android:paddingEnd="10dp"
+        android:background="@drawable/kdk_tile_bg"
+        android:clickable="true"
+        android:focusable="true"
+        android:contentDescription="@string/btn_user_content_description">
+
+        <ImageView
+            android:layout_width="@dimen/hud_user_icon_size"
+            android:layout_height="@dimen/hud_user_icon_size"
+            android:src="@drawable/ic_user"
+            android:scaleType="fitCenter" />
+
+        <TextView
+            android:id="@+id/btnUserName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="@dimen/hud_user_name_text_size"
+            android:textColor="@color/kdk_paper"
+            android:text=""
+            android:paddingStart="8dp"
+            android:paddingEnd="4dp" />
+    </LinearLayout>
+
+    <!-- System buttons: settings + close -->
+    <LinearLayout
+        android:id="@+id/serviceButtonsBox"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginStart="@dimen/box_margin">
+
+        <TextView
+            android:id="@+id/btnSettings"
+            android:layout_width="64dp"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="@string/btn_settings"
+            android:textColor="@color/kdk_ash"
+            android:textStyle="bold"
+            android:textSize="@dimen/text_close_button"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="@drawable/service_button_border" />
+
+        <TextView
+            android:id="@+id/btnClose"
+            android:layout_width="64dp"
+            android:layout_height="match_parent"
             android:layout_marginStart="@dimen/box_margin"
-            android:layout_marginEnd="@dimen/box_margin">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/label_incline"
-                style="@style/HudText.Label" />
-
-            <TextView
-                android:id="@+id/tvIncline"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/default_incline"
-                style="@style/HudText.Value" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/unit_grade"
-                style="@style/HudText.Unit" />
-        </LinearLayout>
-
-        <!-- Heart Rate Box -->
-        <LinearLayout
-            android:id="@+id/hrBox"
-            style="@style/HudBox.HeartRate"
-            android:layout_marginStart="@dimen/box_margin"
-            android:layout_marginEnd="@dimen/box_margin">
-
-            <TextView
-                android:id="@+id/tvHrLabel"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/label_heart_rate"
-                style="@style/HudText.Label.Dim" />
-
-            <TextView
-                android:id="@+id/tvHeartRate"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/default_heart_rate"
-                style="@style/HudText.Value" />
-
-            <TextView
-                android:id="@+id/tvHrSubtitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:visibility="gone"
-                android:text=""
-                style="@style/HudText.Unit" />
-        </LinearLayout>
-
-        <!-- DFA Alpha1 Box (touchable) -->
-        <LinearLayout
-            android:id="@+id/dfaBox"
-            style="@style/HudBox.Interactive"
-            android:layout_marginStart="@dimen/box_margin"
-            android:layout_marginEnd="@dimen/box_margin">
-
-            <TextView
-                android:id="@+id/tvDfaLabel"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/label_dfa"
-                style="@style/HudText.Label.Dim" />
-
-            <TextView
-                android:id="@+id/tvDfaValue"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/default_dfa"
-                style="@style/HudText.Value" />
-
-            <TextView
-                android:id="@+id/tvDfaSubtitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:visibility="gone"
-                android:text=""
-                style="@style/HudText.Unit" />
-        </LinearLayout>
-
-        <!-- Foot Pod Box (touchable) -->
-        <LinearLayout
-            android:id="@+id/footPodBox"
-            style="@style/HudBox.Interactive"
-            android:layout_marginStart="@dimen/box_margin"
-            android:layout_marginEnd="@dimen/box_margin">
-
-            <TextView
-                android:id="@+id/tvFootPodLabel"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/label_foot_pod"
-                style="@style/HudText.Label.Dim" />
-
-            <TextView
-                android:id="@+id/tvFootPodValue"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/foot_pod_not_connected"
-                style="@style/HudText.Value" />
-
-            <TextView
-                android:id="@+id/tvFootPodUnit"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text=""
-                style="@style/HudText.Unit" />
-        </LinearLayout>
-
-        <!-- Timer Box -->
-        <LinearLayout
-            style="@style/HudBox.Data"
-            android:layout_marginStart="@dimen/box_margin"
-            android:layout_marginEnd="@dimen/box_margin">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/label_time"
-                style="@style/HudText.Label.Dim" />
-
-            <TextView
-                android:id="@+id/tvTime"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/default_time"
-                style="@style/HudText.Value" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:visibility="invisible"
-                android:text="@string/unit_km"
-                style="@style/HudText.Unit" />
-        </LinearLayout>
-
-        <!-- Distance Box -->
-        <LinearLayout
-            style="@style/HudBox.Data"
-            android:layout_marginStart="@dimen/box_margin"
-            android:layout_marginEnd="@dimen/box_margin">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/label_distance"
-                style="@style/HudText.Label.Dim" />
-
-            <TextView
-                android:id="@+id/tvDistance"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/default_distance"
-                style="@style/HudText.Value" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/unit_km"
-                style="@style/HudText.Unit" />
-        </LinearLayout>
-
-        <!-- Meters Climbed Box -->
-        <LinearLayout
-            style="@style/HudBox.Data"
-            android:layout_marginStart="@dimen/box_margin"
-            android:layout_marginEnd="@dimen/box_margin">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/label_climb"
-                style="@style/HudText.Label.Dim" />
-
-            <TextView
-                android:id="@+id/tvClimb"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/default_climb"
-                style="@style/HudText.Value" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:visibility="invisible"
-                android:text="@string/unit_km"
-                style="@style/HudText.Unit" />
-        </LinearLayout>
-
-        <!-- TSS Box -->
-        <LinearLayout
-            android:id="@+id/tssBox"
-            style="@style/HudBox.Data"
-            android:layout_marginStart="@dimen/box_margin"
-            android:layout_marginEnd="@dimen/box_margin">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/label_tss"
-                style="@style/HudText.Label.Dim" />
-
-            <TextView
-                android:id="@+id/tvTrainingMetrics"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/default_tss"
-                style="@style/HudText.Value" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:visibility="invisible"
-                android:text="@string/unit_km"
-                style="@style/HudText.Unit" />
-        </LinearLayout>
-
-        <!-- Service Buttons Box -->
-        <LinearLayout
-            android:id="@+id/serviceButtonsBox"
-            style="@style/HudBox.Service"
-            android:layout_marginStart="@dimen/box_margin">
-
-            <TextView
-                android:id="@+id/btnWorkouts"
-                android:text="@string/btn_workouts"
-                style="@style/HudButton.Close" />
-
-            <ImageView
-                android:id="@+id/btnChart"
-                android:layout_width="@dimen/service_button_width"
-                android:layout_height="@dimen/service_button_height"
-                android:src="@drawable/ic_chart"
-                android:scaleType="centerInside"
-                android:padding="20dp"
-                android:background="@drawable/service_button_border"
-                android:clickable="true"
-                android:focusable="true"
-                android:contentDescription="@string/btn_chart" />
-
-            <ImageView
-                android:id="@+id/btnCamera"
-                android:layout_width="@dimen/service_button_width"
-                android:layout_height="@dimen/service_button_height"
-                android:src="@drawable/ic_camera"
-                android:scaleType="centerInside"
-                android:padding="20dp"
-                android:background="@drawable/service_button_border"
-                android:clickable="true"
-                android:focusable="true"
-                android:contentDescription="@string/btn_camera" />
-
-            <ImageView
-                android:id="@+id/btnBluetooth"
-                android:layout_width="@dimen/service_button_width"
-                android:layout_height="@dimen/service_button_height"
-                android:src="@drawable/ic_bluetooth"
-                android:scaleType="centerInside"
-                android:padding="20dp"
-                android:background="@drawable/service_button_border"
-                android:clickable="true"
-                android:focusable="true"
-                android:contentDescription="@string/bt_dialog_title" />
-
-            <ImageView
-                android:id="@+id/btnRemote"
-                android:layout_width="@dimen/service_button_width"
-                android:layout_height="@dimen/service_button_height"
-                android:src="@drawable/ic_remote"
-                android:scaleType="centerInside"
-                android:padding="6dp"
-                android:background="@drawable/service_button_border"
-                android:clickable="true"
-                android:focusable="true"
-                android:contentDescription="@string/btn_remote" />
-
-            <LinearLayout
-                android:id="@+id/btnUser"
-                android:layout_width="wrap_content"
-                android:layout_height="@dimen/service_button_height"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:paddingStart="8dp"
-                android:paddingEnd="4dp"
-                android:background="@drawable/service_button_border"
-                android:clickable="true"
-                android:focusable="true"
-                android:contentDescription="@string/btn_user_content_description">
-
-                <ImageView
-                    android:layout_width="@dimen/hud_user_icon_size"
-                    android:layout_height="@dimen/hud_user_icon_size"
-                    android:src="@drawable/ic_user"
-                    android:scaleType="fitCenter" />
-
-                <TextView
-                    android:id="@+id/btnUserName"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textSize="@dimen/hud_user_name_text_size"
-                    android:textColor="@color/text_primary"
-                    android:text=""
-                    android:paddingEnd="8dp" />
-            </LinearLayout>
-
-            <TextView
-                android:id="@+id/btnSettings"
-                android:text="@string/btn_settings"
-                style="@style/HudButton.Close" />
-
-            <TextView
-                android:id="@+id/btnClose"
-                android:text="@string/btn_close"
-                style="@style/HudButton.Close" />
-        </LinearLayout>
+            android:gravity="center"
+            android:text="@string/btn_close"
+            android:textColor="@color/kdk_danger"
+            android:textStyle="bold"
+            android:textSize="@dimen/text_close_button"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="@drawable/service_button_border" />
     </LinearLayout>
 </LinearLayout>

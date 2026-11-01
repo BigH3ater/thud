@@ -13,20 +13,38 @@
     <!-- Note: Gray colors have subtle blue tint (saturation > 25) to ensure they're
          preserved during DRM wallpaper substitution instead of being blended -->
 
-    <!-- Main HUD background (blue-tinted dark gray for DRM visibility) -->
-    <color name="hud_background">#CC2A2A48</color>
+    <!-- ==================== Kodiak (kdk) brand palette ==================== -->
+    <!-- kdk "ink ground" branding used across the MackTrack console UI. -->
+    <color name="kdk_ink">#1B1A18</color>
+    <color name="kdk_terminal">#161311</color>
+    <color name="kdk_surface">#2B2825</color>
+    <color name="kdk_surface2">#332F2B</color>
+    <color name="kdk_line">#423D38</color>
+    <color name="kdk_paper">#ECE2D0</color>
+    <color name="kdk_ash">#8D8377</color>
+    <color name="kdk_bark">#6B6358</color>
+    <color name="kdk_ember">#C9743F</color>
+    <color name="kdk_rust">#9D4A25</color>
+    <color name="kdk_green">#9BBD7E</color>
+    <color name="kdk_green_d">#6F8F5C</color>
+    <color name="kdk_warn">#D9A441</color>
+    <color name="kdk_danger">#E0705A</color>
+    <color name="kdk_info">#8FB6C4</color>
 
-    <!-- Text colors (blue-tinted grays) -->
-    <color name="text_primary">#FFFFFF</color>
-    <color name="text_label">#AAAAC8</color>
-    <color name="text_label_dim">#8888A8</color>
-    <color name="text_on_zone">#CCFFFFFF</color>
+    <!-- Main HUD background (near-opaque Kodiak ink over the kiosk backdrop) -->
+    <color name="hud_background">#F21B1A18</color>
 
-    <!-- Box backgrounds -->
-    <color name="box_interactive">#44FFFFFF</color>
-    <color name="box_data">#33FFFFFF</color>
-    <color name="box_heart_rate">#33FF4444</color>
-    <color name="box_service">#338888A8</color>
+    <!-- Text colors (Kodiak paper / ash) -->
+    <color name="text_primary">#ECE2D0</color>
+    <color name="text_label">#C9BBA6</color>
+    <color name="text_label_dim">#8D8377</color>
+    <color name="text_on_zone">#ECE2D0</color>
+
+    <!-- Box backgrounds (solid Kodiak surface tiles) -->
+    <color name="box_interactive">#FF2B2825</color>
+    <color name="box_data">#FF2B2825</color>
+    <color name="box_heart_rate">#FF2B2825</color>
+    <color name="box_service">#FF201D1A</color>
 
     <!-- Close button -->
     <color name="btn_close">#FF6666</color>

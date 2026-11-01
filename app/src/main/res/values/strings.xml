@@ -132,9 +132,21 @@
     <string name="default_dfa">--</string>
     <string name="unit_grade">grade</string>
     <string name="unit_km">km</string>
+    <!-- Kodiak / MackTrack HUD additions -->
+    <string name="brand_name">MackTrack</string>
+    <string name="brand_tagline">thud · Kodiak</string>
+    <string name="kiosk_hint">Tap to open the HUD</string>
+    <string name="label_speed">SPEED</string>
+    <string name="label_calories">CAL</string>
+    <string name="unit_mph">mph</string>
+    <string name="unit_mi">mi</string>
+    <string name="unit_percent">%</string>
+    <string name="unit_kcal">kcal</string>
+    <string name="default_calories">0</string>
+    <string name="btn_resume_start">▶ Resume</string>
     <string name="default_pace">--:--</string>
-    <string name="default_raw_speed">(0.0 kph)</string>
-    <string name="default_incline">0.0%</string>
+    <string name="default_raw_speed">0.0</string>
+    <string name="default_incline">0.0</string>
     <string name="default_time">0:00</string>
     <string name="default_distance">0.00</string>
     <string name="default_climb">0m</string>

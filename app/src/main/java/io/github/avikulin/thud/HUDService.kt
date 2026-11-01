@@ -383,6 +383,7 @@ class HUDService : Service(),
             mainHandler.post {
                 hudDisplayManager.updateDistance(distanceKm)
                 hudDisplayManager.updateClimb(elevationM)
+                hudDisplayManager.updateCalories(workoutRecorder.calculatedCaloriesKcal)
             }
         }
 
@@ -395,6 +396,7 @@ class HUDService : Service(),
         hudDisplayManager.getCalculatedDistance = { workoutRecorder.calculatedDistanceKm }
         hudDisplayManager.getCalculatedElevation = { workoutRecorder.calculatedElevationGainM }
         hudDisplayManager.getWorkoutElapsedSeconds = { workoutRecorder.workoutElapsedSeconds }
+        hudDisplayManager.getCalculatedCalories = { workoutRecorder.calculatedCaloriesKcal }
 
         chartManager = ChartManager(this, windowManager, state, workoutRecorder)
 

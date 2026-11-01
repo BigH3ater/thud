@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Kiosk backdrop: shown behind the HUD overlay so the base Android launcher/UI
+     never appears. Tapping anywhere re-shows the HUD. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/kioskRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/kdk_backdrop"
+    android:clickable="true"
+    android:focusable="true">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:orientation="vertical"
+        android:gravity="center">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/brand_name"
+            android:textColor="@color/kdk_paper"
+            android:textStyle="bold"
+            android:textSize="64sp"
+            android:letterSpacing="0.06"
+            android:fontFamily="sans-serif-condensed" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="@string/brand_tagline"
+            android:textColor="@color/kdk_ember"
+            android:textSize="20sp"
+            android:letterSpacing="0.22"
+            android:fontFamily="monospace" />
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="28dp"
+        android:text="@string/kiosk_hint"
+        android:textColor="@color/kdk_bark"
+        android:textSize="14sp"
+        android:fontFamily="monospace" />
+</FrameLayout>

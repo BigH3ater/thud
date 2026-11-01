@@ -10,21 +10,21 @@
     <!-- popup_height_percent = 0.7 (70%) -->
 
     <!-- Padding and margins -->
-    <dimen name="hud_padding">4dp</dimen>
-    <dimen name="box_padding">2dp</dimen>
-    <dimen name="box_margin">2dp</dimen>
+    <dimen name="hud_padding">8dp</dimen>
+    <dimen name="box_padding">6dp</dimen>
+    <dimen name="box_margin">4dp</dimen>
     <dimen name="popup_padding">8dp</dimen>
     <dimen name="popup_button_margin">2dp</dimen>
     <dimen name="popup_resume_button_height">80dp</dimen>
 
     <!-- ==================== Text Sizes ==================== -->
 
-    <!-- HUD text sizes -->
+    <!-- HUD text sizes (enlarged for the trimmed 4-tile Kodiak HUD) -->
     <dimen name="text_status">8sp</dimen>
-    <dimen name="text_label">10sp</dimen>
-    <dimen name="text_value">36sp</dimen>
-    <dimen name="text_unit">10sp</dimen>
-    <dimen name="text_close_button">44sp</dimen>
+    <dimen name="text_label">15sp</dimen>
+    <dimen name="text_value">60sp</dimen>
+    <dimen name="text_unit">18sp</dimen>
+    <dimen name="text_close_button">40sp</dimen>
     <dimen name="service_button_border_width">2dp</dimen>
     <dimen name="service_button_corner_radius">4dp</dimen>
     <dimen name="service_button_width">80dp</dimen>
@@ -36,8 +36,8 @@
     <!-- ==================== Layout Fractions ==================== -->
     <!-- Used in HUDService.kt for programmatic sizing -->
 
-    <item name="hud_width_fraction" format="float" type="dimen">0.97</item>
-    <item name="hud_height_fraction" format="float" type="dimen">0.09</item>
+    <item name="hud_width_fraction" format="float" type="dimen">1.0</item>
+    <item name="hud_height_fraction" format="float" type="dimen">0.19</item>
     <item name="popup_width_fraction" format="float" type="dimen">0.6</item>
     <item name="popup_height_fraction" format="float" type="dimen">0.7</item>
     <item name="dialog_width_fraction" format="float" type="dimen">0.5</item>

@@ -67,6 +67,8 @@ class HUDDisplayManager(
     private var tvHrLabel: TextView? = null
     private var tvHrSubtitle: TextView? = null
     private var tvClimb: TextView? = null
+    private var tvCalories: TextView? = null
+    private var btnResume: View? = null
     private var paceBox: View? = null
     private var inclineBox: View? = null
     private var hrBox: View? = null
@@ -93,6 +95,11 @@ class HUDDisplayManager(
     var getCalculatedDistance: (() -> Double)? = null
     var getCalculatedElevation: (() -> Double)? = null
     var getWorkoutElapsedSeconds: (() -> Int)? = null
+    var getCalculatedCalories: (() -> Double)? = null
+
+    // Imperial units for the MackTrack console (owner preference: mph / mi).
+    private val miPerKm = 0.621371
+    private var lastCaloriesKcal: Double = Double.NaN
 
     // Current treadmill workout state for pace box display
     private var currentTreadmillState: WorkoutState = WorkoutState.WORKOUT_STATE_IDLE
@@ -172,35 +179,18 @@ class HUDDisplayManager(
 
             windowManager.addView(topView, hudParams)
 
-            // Initialize text views
+            // Bind only the views present in the trimmed Kodiak HUD. The dropped
+            // tiles/buttons keep their (nullable) fields so every update/listener
+            // call stays null-safe — we just never bind them.
             tvIncline = topView?.findViewById(R.id.tvIncline)
-            tvPace = topView?.findViewById(R.id.tvPace)
             tvRawSpeed = topView?.findViewById(R.id.tvRawSpeed)
-            tvTime = topView?.findViewById(R.id.tvTime)
             tvDistance = topView?.findViewById(R.id.tvDistance)
-            tvHeartRate = topView?.findViewById(R.id.tvHeartRate)
-            tvHrLabel = topView?.findViewById(R.id.tvHrLabel)
-            tvHrSubtitle = topView?.findViewById(R.id.tvHrSubtitle)
-            tvClimb = topView?.findViewById(R.id.tvClimb)
+            tvCalories = topView?.findViewById(R.id.tvCalories)
+            btnResume = topView?.findViewById(R.id.btnResume)
 
-            // Initialize touchable boxes
+            // Touchable boxes + chrome
             paceBox = topView?.findViewById(R.id.paceBox)
             inclineBox = topView?.findViewById(R.id.inclineBox)
-            hrBox = topView?.findViewById(R.id.hrBox)
-            dfaBox = topView?.findViewById(R.id.dfaBox)
-            tvDfaLabel = topView?.findViewById(R.id.tvDfaLabel)
-            tvDfaValue = topView?.findViewById(R.id.tvDfaValue)
-            tvDfaSubtitle = topView?.findViewById(R.id.tvDfaSubtitle)
-            footPodBox = topView?.findViewById(R.id.footPodBox)
-            tvFootPodLabel = topView?.findViewById(R.id.tvFootPodLabel)
-            tvFootPodValue = topView?.findViewById(R.id.tvFootPodValue)
-            tvFootPodUnit = topView?.findViewById(R.id.tvFootPodUnit)
-            tvTrainingMetrics = topView?.findViewById(R.id.tvTrainingMetrics)
-            btnWorkouts = topView?.findViewById(R.id.btnWorkouts)
-            btnChart = topView?.findViewById(R.id.btnChart)
-            btnCamera = topView?.findViewById(R.id.btnCamera)
-            btnBluetooth = topView?.findViewById(R.id.btnBluetooth)
-            btnRemote = topView?.findViewById(R.id.btnRemote)
             btnUser = topView?.findViewById(R.id.btnUser)
             btnUserName = topView?.findViewById(R.id.btnUserName)
             btnSettings = topView?.findViewById(R.id.btnSettings)
@@ -226,6 +216,8 @@ class HUDDisplayManager(
             colorDfaWaiting = ContextCompat.getColor(service, R.color.dfa_zone_waiting)
 
             // Set up touch handlers
+            // Resume/Start reuses the vetted pace-popup start path (never auto-starts the belt).
+            btnResume?.setOnClickListener { listener?.onPaceBoxClicked() }
             paceBox?.setOnClickListener { listener?.onPaceBoxClicked() }
             inclineBox?.setOnClickListener { listener?.onInclineBoxClicked() }
             hrBox?.setOnClickListener { listener?.onHrBoxClicked() }
@@ -311,15 +303,18 @@ class HUDDisplayManager(
         lastDistanceKm = Double.NaN
         lastElevationM = Double.NaN
         lastSpeedKph = state.currentSpeedKph
+        lastCaloriesKcal = Double.NaN
         updatePaceDisplay()
-        tvRawSpeed?.text = "(${fmtOneDecimal(state.currentSpeedKph)} kph)"
-        tvIncline?.text = "${fmtOneDecimal(state.currentInclinePercent)}%"
+        // Speed shown in mph (owner preference); incline value is the bare number, unit label carries "%".
+        tvRawSpeed?.text = fmtOneDecimal(state.currentSpeedKph * miPerKm)
+        tvIncline?.text = fmtOneDecimal(state.currentInclinePercent)
         tvHeartRate?.text = if (state.currentHeartRateBpm > 0) state.currentHeartRateBpm.toInt().toString() else "--"
 
         val distance = getCalculatedDistance?.invoke() ?: 0.0
         val elevation = getCalculatedElevation?.invoke() ?: 0.0
-        tvDistance?.text = fmtTwoDecimal(distance)
+        tvDistance?.text = fmtTwoDecimal(distance * miPerKm)
         tvClimb?.text = "${floor(elevation).toInt()}m"
+        tvCalories?.text = (getCalculatedCalories?.invoke() ?: 0.0).toInt().toString()
 
         // Update HR box background color based on current zone
         updateHrBoxColor(state.currentHeartRateBpm)
@@ -337,7 +332,7 @@ class HUDDisplayManager(
         lastSpeedKph = kph
         mainHandler.post {
             updatePaceDisplay()
-            tvRawSpeed?.text = "(${fmtOneDecimal(kph)} kph)"
+            tvRawSpeed?.text = fmtOneDecimal(kph * miPerKm)
         }
     }
 
@@ -381,7 +376,7 @@ class HUDDisplayManager(
         if (percent == lastInclinePercent) return
         lastInclinePercent = percent
         mainHandler.post {
-            tvIncline?.text = "${fmtOneDecimal(percent)}%"
+            tvIncline?.text = fmtOneDecimal(percent)
         }
     }
 
@@ -441,7 +436,8 @@ class HUDDisplayManager(
         if (floored == lastDistanceKm) return
         lastDistanceKm = floored
         mainHandler.post {
-            tvDistance?.text = fmtTwoDecimal(floored)
+            // Displayed in miles (owner preference); cache stays in floored km.
+            tvDistance?.text = fmtTwoDecimal(floored * miPerKm)
         }
     }
 
@@ -455,6 +451,18 @@ class HUDDisplayManager(
         lastElevationM = floored
         mainHandler.post {
             tvClimb?.text = "${floored.toInt()}m"
+        }
+    }
+
+    /**
+     * Update calories display (whole kcal).
+     */
+    fun updateCalories(kcal: Double) {
+        val floored = floor(kcal)
+        if (floored == lastCaloriesKcal) return
+        lastCaloriesKcal = floored
+        mainHandler.post {
+            tvCalories?.text = floored.toInt().toString()
         }
     }
 
