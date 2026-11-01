@@ -63,7 +63,7 @@ class GlassOsClient(
         private const val CLIENT_KEY_FILE = "client.key"
 
         // Client ID for gRPC authorization - must match the iFit app package name
-        private const val CLIENT_ID = "com.ifit.rivendell"
+        private const val CLIENT_ID = "com.ifit.dev_app"  // GlassOS authorizes this generic third-party client_id (same as NordicFTMS); the real app id is reserved/denied
 
         // Metadata key for client_id header
         private val CLIENT_ID_KEY: Metadata.Key<String> =
