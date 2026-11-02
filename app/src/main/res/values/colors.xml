@@ -106,10 +106,10 @@
 
     <!-- ==================== Popup Colors ==================== -->
 
-    <color name="popup_background">#EE222240</color>
-    <color name="popup_button_active">#4488FF</color>
-    <color name="popup_button_inactive">#555575</color>
-    <color name="popup_button_text">#FFFFFF</color>
+    <color name="popup_background">#F21B1A18</color>
+    <color name="popup_button_active">#C9743F</color>
+    <color name="popup_button_inactive">#6B6358</color>
+    <color name="popup_button_text">#ECE2D0</color>
 
     <!-- ==================== Workout Panel Colors ==================== -->
 
@@ -141,7 +141,7 @@
     <color name="editor_background">#1A1A38</color>
     <color name="editor_step_background">#2A2A48</color>
     <color name="editor_step_border">#444466</color>
-    <color name="editor_input_background">#333355</color>
+    <color name="editor_input_background">#332F2B</color>
     <color name="editor_button_primary">#4488FF</color>
     <color name="editor_button_secondary">#666688</color>
     <color name="editor_divider">#444466</color>
@@ -153,18 +153,18 @@
 
     <!-- ==================== Dialog Common Colors ==================== -->
 
-    <color name="text_secondary">#AAAAC8</color>
-    <color name="button_primary">#4488FF</color>
-    <color name="button_secondary">#444466</color>
-    <color name="button_success">#44AA44</color>
+    <color name="text_secondary">#C9BBA6</color>
+    <color name="button_primary">#C9743F</color>
+    <color name="button_secondary">#423D38</color>
+    <color name="button_success">#6F8F5C</color>
 
     <!-- ==================== TouchSpinner Colors ==================== -->
 
-    <color name="spinner_button_background">#444466</color>
-    <color name="spinner_button_pressed">#666688</color>
-    <color name="spinner_button_text">#FFFFFF</color>
-    <color name="spinner_value_background">#333355</color>
-    <color name="spinner_value_text">#FFFFFF</color>
+    <color name="spinner_button_background">#423D38</color>
+    <color name="spinner_button_pressed">#6B6358</color>
+    <color name="spinner_button_text">#ECE2D0</color>
+    <color name="spinner_value_background">#2B2825</color>
+    <color name="spinner_value_text">#ECE2D0</color>
 
     <!-- ==================== Inline Step Editor Colors ==================== -->
 
@@ -218,6 +218,6 @@
 
     <color name="delete_button_bg">#CC2222</color>
     <color name="delete_button_text">#FFFFFF</color>
-    <color name="settings_section_header">#AAAAC8</color>
-    <color name="pin_dialog_background">#F8222240</color>
+    <color name="settings_section_header">#C9743F</color>
+    <color name="pin_dialog_background">#F81B1A18</color>
 </resources>

@@ -589,7 +589,11 @@ class SettingsManager(
         val dialogWidthFraction = resources.getFloat(R.dimen.dialog_width_fraction)
         val tabHeight = resources.getDimensionPixelSize(R.dimen.settings_tab_height)
         val tabMargin = resources.getDimensionPixelSize(R.dimen.settings_tab_margin)
-        val contentHeight = resources.getDimensionPixelSize(R.dimen.settings_content_height)
+        // Cap the content area to a fraction of the screen so the whole dialog
+        // (tabs + content + buttons) fits; the content scrolls within it.
+        val contentHeight = if (state.screenHeight > 0)
+            (state.screenHeight * 0.62f).toInt()
+        else resources.getDimensionPixelSize(R.dimen.settings_content_height)
 
         // Create main container
         val container = LinearLayout(service)
@@ -637,10 +641,8 @@ class SettingsManager(
             orientation = LinearLayout.VERTICAL
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
-                contentHeight
-            ).apply {
-                topMargin = buttonsTopMargin / 2
-            }
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
         }
 
         // Create tab contents
@@ -662,7 +664,19 @@ class SettingsManager(
         contentContainer.addView(dfaAlpha1Content)
         contentContainer.addView(chartContent)
 
-        container.addView(contentContainer)
+        // Scroll the (possibly tall) tab content within the capped height so
+        // nothing is clipped off the bottom of the screen.
+        val contentScroll = ScrollView(service).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                contentHeight
+            ).apply {
+                topMargin = buttonsTopMargin / 2
+            }
+            isFillViewport = true
+            addView(contentContainer)
+        }
+        container.addView(contentScroll)
 
         // ===== Buttons Row =====
         val buttonsRow = LinearLayout(service)
