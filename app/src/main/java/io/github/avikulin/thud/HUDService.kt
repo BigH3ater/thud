@@ -722,6 +722,7 @@ class HUDService : Service(),
         chartManager.clearPlannedSegments()
         hudDisplayManager.updateTrainingMetrics(0.0)  // Reset TSS display
         hudDisplayManager.updateDistance(0.0)  // Reset distance display
+        hudDisplayManager.updateCalories(0.0)  // Reset calories display
         hudDisplayManager.updateClimb(0.0)  // Reset climb display
         workoutDataExported = false
         lastWorkoutName = null
@@ -2474,6 +2475,18 @@ class HUDService : Service(),
             // Belt just stopped — persist this user's last settings (once).
             persistLastResumeSettings(lastNonZeroSpeedKph, lastNonZeroInclinePercent)
             lastNonZeroSpeedKph = 0.0
+            // End the session on stop: save the run (FIT export, which also emits the
+            // HA run_end webhook) and zero the HUD (distance/calories/etc.) so the next
+            // walk starts fresh. Per-person HA totals come from the independent bridge
+            // path + the speed-based session-end automation. No-op if there is no run.
+            mainHandler.post {
+                if (workoutRecorder.getDataPointCount() > 0) {
+                    val name = workoutEngineManager.getCurrentWorkout()?.name
+                        ?: lastWorkoutName
+                        ?: getString(R.string.free_run_name)
+                    saveAndClearRun(name)
+                }
+            }
         }
     }
 
