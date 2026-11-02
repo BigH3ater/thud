@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Kiosk backdrop: shown behind the HUD overlay so the base Android launcher/UI
-     never appears. Tapping anywhere re-shows the HUD. -->
+<!-- Kiosk backdrop (behind the HUD overlay). Brand sits just below the HUD band;
+     a single Apps button (bottom-right) opens the Watch/Listen/Read launcher. -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/kioskRoot"
     android:layout_width="match_parent"
@@ -9,41 +9,176 @@
     android:clickable="true"
     android:focusable="true">
 
+    <!-- Brand just under the HUD band (top ~19% reserved to clear the HUD). -->
     <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:orientation="vertical"
-        android:gravity="center">
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/brand_name"
-            android:textColor="@color/kdk_paper"
-            android:textStyle="bold"
-            android:textSize="64sp"
-            android:letterSpacing="0.06"
-            android:fontFamily="sans-serif-condensed" />
+        <View android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="19" />
 
-        <TextView
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:text="@string/brand_tagline"
-            android:textColor="@color/kdk_ember"
-            android:textSize="20sp"
-            android:letterSpacing="0.22"
-            android:fontFamily="monospace" />
+            android:orientation="vertical"
+            android:gravity="center_horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/brand_name"
+                android:textColor="@color/kdk_paper"
+                android:textStyle="bold"
+                android:textSize="40sp"
+                android:letterSpacing="0.06"
+                android:fontFamily="sans-serif-condensed" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="@string/brand_tagline"
+                android:textColor="@color/kdk_ember"
+                android:textSize="15sp"
+                android:letterSpacing="0.22"
+                android:fontFamily="monospace" />
+        </LinearLayout>
+
+        <View android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="81" />
     </LinearLayout>
 
-    <TextView
+    <!-- Single Apps launcher button -->
+    <LinearLayout
+        android:id="@+id/appsButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|center_horizontal"
+        android:layout_gravity="bottom|end"
+        android:layout_marginEnd="28dp"
         android:layout_marginBottom="28dp"
-        android:text="@string/kiosk_hint"
-        android:textColor="@color/kdk_bark"
-        android:textSize="14sp"
-        android:fontFamily="monospace" />
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="18dp"
+        android:paddingEnd="20dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp"
+        android:background="@drawable/kdk_apps_bg"
+        android:clickable="true"
+        android:focusable="true">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="▦"
+            android:textColor="@color/kdk_ember"
+            android:textSize="30sp"
+            android:paddingEnd="12dp" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/launcher_apps"
+                android:textColor="@color/kdk_paper"
+                android:textStyle="bold"
+                android:textSize="20sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/launcher_groups"
+                android:textColor="@color/kdk_ash"
+                android:textSize="12sp"
+                android:fontFamily="monospace" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Launcher overlay (hidden until Apps tapped) -->
+    <ScrollView
+        android:id="@+id/launcherOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#F2100E0D"
+        android:visibility="gone"
+        android:clickable="true"
+        android:focusable="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="28dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/launcher_title"
+                    android:textColor="@color/kdk_paper"
+                    android:textStyle="bold"
+                    android:textSize="30sp" />
+
+                <TextView
+                    android:id="@+id/launcherClose"
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:gravity="center"
+                    android:text="✕"
+                    android:textColor="@color/kdk_danger"
+                    android:textStyle="bold"
+                    android:textSize="28sp"
+                    android:background="@drawable/service_button_border"
+                    android:clickable="true"
+                    android:focusable="true" />
+            </LinearLayout>
+
+            <!-- WATCH -->
+            <TextView style="@style/KdkGroupLabel" android:text="@string/group_watch" />
+            <LinearLayout style="@style/KdkAppRow">
+                <LinearLayout android:id="@+id/appDiscovery" style="@style/KdkAppTile">
+                    <TextView style="@style/KdkAppLogo" android:text="D+" android:background="@color/kdk_info" />
+                    <TextView style="@style/KdkAppName" android:text="@string/app_discovery" />
+                </LinearLayout>
+                <LinearLayout android:id="@+id/appJellyfin" style="@style/KdkAppTile">
+                    <TextView style="@style/KdkAppLogo" android:text="J" android:background="@color/kdk_rust" />
+                    <TextView style="@style/KdkAppName" android:text="@string/app_jellyfin" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- LISTEN -->
+            <TextView style="@style/KdkGroupLabel" android:text="@string/group_listen" />
+            <LinearLayout style="@style/KdkAppRow">
+                <LinearLayout android:id="@+id/appAudible" style="@style/KdkAppTile">
+                    <TextView style="@style/KdkAppLogo" android:text="a." android:background="@color/kdk_bark" />
+                    <TextView style="@style/KdkAppName" android:text="@string/app_audible" />
+                </LinearLayout>
+                <LinearLayout android:id="@+id/appAbs" style="@style/KdkAppTile">
+                    <TextView style="@style/KdkAppLogo" android:text="A" android:background="@color/kdk_warn" />
+                    <TextView style="@style/KdkAppName" android:text="@string/app_abs" />
+                </LinearLayout>
+                <LinearLayout android:id="@+id/appSpotify" style="@style/KdkAppTile">
+                    <TextView style="@style/KdkAppLogo" android:text="♪" android:background="@color/kdk_green_d" />
+                    <TextView style="@style/KdkAppName" android:text="@string/app_spotify" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- READ -->
+            <TextView style="@style/KdkGroupLabel" android:text="@string/group_read" />
+            <LinearLayout style="@style/KdkAppRow">
+                <LinearLayout android:id="@+id/appCalibre" style="@style/KdkAppTile">
+                    <TextView style="@style/KdkAppLogo" android:text="C" android:background="@color/kdk_ember" />
+                    <TextView style="@style/KdkAppName" android:text="@string/app_calibre" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
 </FrameLayout>

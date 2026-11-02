@@ -144,6 +144,20 @@
     <string name="unit_kcal">kcal</string>
     <string name="default_calories">0</string>
     <string name="btn_resume_start">▶ Resume</string>
+    <!-- Launcher -->
+    <string name="launcher_apps">Apps</string>
+    <string name="launcher_groups">Watch · Listen · Read</string>
+    <string name="launcher_title">Launcher</string>
+    <string name="group_watch">WATCH</string>
+    <string name="group_listen">LISTEN</string>
+    <string name="group_read">READ</string>
+    <string name="app_discovery">Discovery+</string>
+    <string name="app_jellyfin">Jellyfin</string>
+    <string name="app_audible">Audible</string>
+    <string name="app_abs">Audiobookshelf</string>
+    <string name="app_spotify">Spotify</string>
+    <string name="app_calibre">Calibre</string>
+    <string name="launcher_not_installed">Not installed yet: %1$s</string>
     <string name="default_pace">--:--</string>
     <string name="default_raw_speed">0.0</string>
     <string name="default_incline">0.0</string>

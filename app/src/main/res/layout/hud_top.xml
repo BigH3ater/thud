@@ -36,7 +36,7 @@
     <LinearLayout
         android:id="@+id/paceBox"
         style="@style/HudBox.Interactive"
-        android:background="@drawable/kdk_tile_bg"
+        android:background="@drawable/kdk_tile_speed"
         android:layout_marginStart="@dimen/box_margin"
         android:layout_marginEnd="@dimen/box_margin">
 
@@ -65,7 +65,7 @@
     <LinearLayout
         android:id="@+id/inclineBox"
         style="@style/HudBox.Interactive"
-        android:background="@drawable/kdk_tile_bg"
+        android:background="@drawable/kdk_tile_incline"
         android:layout_marginStart="@dimen/box_margin"
         android:layout_marginEnd="@dimen/box_margin">
 
@@ -93,7 +93,7 @@
     <!-- Distance (mi) -->
     <LinearLayout
         style="@style/HudBox.Data"
-        android:background="@drawable/kdk_tile_bg"
+        android:background="@drawable/kdk_tile_dist"
         android:layout_marginStart="@dimen/box_margin"
         android:layout_marginEnd="@dimen/box_margin">
 
@@ -121,7 +121,7 @@
     <!-- Calories (kcal) -->
     <LinearLayout
         style="@style/HudBox.Data"
-        android:background="@drawable/kdk_tile_bg"
+        android:background="@drawable/kdk_tile_cal"
         android:layout_marginStart="@dimen/box_margin"
         android:layout_marginEnd="@dimen/box_margin">
 

@@ -1,8 +1,10 @@
 package io.github.avikulin.thud
 
 import android.Manifest
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import android.view.View
@@ -14,17 +16,31 @@ import androidx.core.net.toUri
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import java.io.File
 
 /**
  * Kiosk home / launcher activity.
  *
  * Declared as the device HOME so the base Android launcher never shows: this
- * activity is a full-screen, immersive Kodiak backdrop ("MackTrack"), and the
- * HUD is drawn on top of it by [HUDService] as an overlay. It intentionally does
- * NOT finish — it stays as the backdrop. Tapping the backdrop re-shows the HUD
- * (e.g. after the user closed it or returned from another app via Home).
+ * activity is a full-screen, immersive Kodiak backdrop ("MackTrack") with a single
+ * Apps button that opens a Watch/Listen/Read launcher. The HUD is drawn on top by
+ * [HUDService] as an overlay. It intentionally does NOT finish — it stays as the
+ * backdrop. Tapping empty backdrop re-shows the HUD.
  */
 class MainActivity : AppCompatActivity() {
+
+    // Default launch targets. Override per-install without a rebuild via
+    // files/kdk-launcher.conf (lines "key=url:https://…" or "key=pkg:com.x.y").
+    // Browser trio (jellyfin/abs/calibre) opens in the system browser (Jelly);
+    // commercial trio (discovery/audible/spotify) launches the sideloaded package.
+    private val launchDefaults = mapOf(
+        "discovery" to "pkg:com.discovery.discoveryplus.mobile",
+        "jellyfin" to "url:https://jellyfin.kmkdp.com",
+        "audible" to "pkg:com.audible.application",
+        "abs" to "url:https://audiobookshelf.kmkdp.com",
+        "spotify" to "pkg:com.spotify.music",
+        "calibre" to "url:https://calibre.kmkdp.com"
+    )
 
     private val overlayPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -39,8 +55,7 @@ class MainActivity : AppCompatActivity() {
     private val notificationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) {
-        // Start HUD regardless of notification permission result
-        // The notification is nice-to-have but not required
+        // Start HUD regardless of notification permission result (nice-to-have).
         showHud()
     }
 
@@ -48,7 +63,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         enterImmersive()
         setContentView(R.layout.activity_main)
-        findViewById<View>(R.id.kioskRoot)?.setOnClickListener { showHud() }
+        wireLauncher()
         checkOverlayPermissionAndShow()
     }
 
@@ -56,6 +71,7 @@ class MainActivity : AppCompatActivity() {
         super.onNewIntent(intent)
         // Pressing Home returns here; keep the HUD up and bars hidden.
         enterImmersive()
+        findViewById<View>(R.id.launcherOverlay)?.visibility = View.GONE
         if (Settings.canDrawOverlays(this)) showHud()
     }
 
@@ -72,6 +88,77 @@ class MainActivity : AppCompatActivity() {
                 WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         }
     }
+
+    // ==================== Launcher ====================
+
+    private fun wireLauncher() {
+        val overlay = findViewById<View>(R.id.launcherOverlay)
+        // Tap empty backdrop → re-show HUD (child buttons consume their own taps).
+        findViewById<View>(R.id.kioskRoot)?.setOnClickListener { showHud() }
+        findViewById<View>(R.id.appsButton)?.setOnClickListener { overlay?.visibility = View.VISIBLE }
+        findViewById<View>(R.id.launcherClose)?.setOnClickListener { overlay?.visibility = View.GONE }
+
+        val tiles = mapOf(
+            R.id.appDiscovery to "discovery",
+            R.id.appJellyfin to "jellyfin",
+            R.id.appAudible to "audible",
+            R.id.appAbs to "abs",
+            R.id.appSpotify to "spotify",
+            R.id.appCalibre to "calibre"
+        )
+        for ((id, key) in tiles) {
+            findViewById<View>(id)?.setOnClickListener { launchApp(key) }
+        }
+    }
+
+    private fun loadTargets(): Map<String, String> {
+        val m = launchDefaults.toMutableMap()
+        try {
+            val f = File(filesDir, "kdk-launcher.conf")
+            if (f.exists()) {
+                f.readLines().forEach { raw ->
+                    val line = raw.trim()
+                    if (line.isNotEmpty() && !line.startsWith("#") && line.contains("=")) {
+                        val k = line.substringBefore("=").trim()
+                        val v = line.substringAfter("=").trim()
+                        if (k.isNotEmpty() && v.isNotEmpty()) m[k] = v
+                    }
+                }
+            }
+        } catch (_: Exception) {
+            // fall back to defaults
+        }
+        return m
+    }
+
+    private fun launchApp(key: String) {
+        val target = loadTargets()[key]
+        if (target != null) {
+            try {
+                val intent: Intent? = when {
+                    target.startsWith("url:") ->
+                        Intent(Intent.ACTION_VIEW, Uri.parse(target.removePrefix("url:")))
+                    target.startsWith("pkg:") ->
+                        packageManager.getLaunchIntentForPackage(target.removePrefix("pkg:"))
+                            ?: throw ActivityNotFoundException(key)
+                    else -> null
+                }
+                if (intent != null) {
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    startActivity(intent)
+                }
+            } catch (e: Exception) {
+                Toast.makeText(
+                    this,
+                    getString(R.string.launcher_not_installed, key),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+        findViewById<View>(R.id.launcherOverlay)?.visibility = View.GONE
+    }
+
+    // ==================== Permissions / HUD ====================
 
     private fun checkOverlayPermissionAndShow() {
         if (!Settings.canDrawOverlays(this)) {

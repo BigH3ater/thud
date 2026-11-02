@@ -37,6 +37,7 @@ class HUDDisplayManager(
      * Callback interface for HUD button events.
      */
     interface Listener {
+        fun onResumeClicked()
         fun onPaceBoxClicked()
         fun onInclineBoxClicked()
         fun onHrBoxClicked()
@@ -216,8 +217,8 @@ class HUDDisplayManager(
             colorDfaWaiting = ContextCompat.getColor(service, R.color.dfa_zone_waiting)
 
             // Set up touch handlers
-            // Resume/Start reuses the vetted pace-popup start path (never auto-starts the belt).
-            btnResume?.setOnClickListener { listener?.onPaceBoxClicked() }
+            // Resume = resume the selected user's last settings (direct start, no popup).
+            btnResume?.setOnClickListener { listener?.onResumeClicked() }
             paceBox?.setOnClickListener { listener?.onPaceBoxClicked() }
             inclineBox?.setOnClickListener { listener?.onInclineBoxClicked() }
             hrBox?.setOnClickListener { listener?.onHrBoxClicked() }

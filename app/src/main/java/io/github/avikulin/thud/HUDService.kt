@@ -280,6 +280,15 @@ class HUDService : Service(),
     private lateinit var remoteControlManager: RemoteControlManager
     private var accessibilityDialogView: LinearLayout? = null
     private var resumeRunDialogView: LinearLayout? = null
+
+    // Per-user "resume last settings": remember the last non-zero speed/incline while
+    // walking; persisted to the ACTIVE PROFILE's prefs when the belt stops, so Resume
+    // restarts each user at their own last pace/incline.
+    @Volatile private var lastNonZeroSpeedKph = 0.0
+    @Volatile private var lastNonZeroInclinePercent = 0.0
+    private val keyLastResumeSpeed = "last_resume_speed_kph"
+    private val keyLastResumeIncline = "last_resume_incline"
+    private val defaultResumeSpeedKph = 3.2  // ~2.0 mph gentle first-time start
     private var pendingPinChallenge = false
     private val persistenceHandler = Handler(Looper.getMainLooper())
     private val persistenceInterval = 15_000L  // 15 seconds
@@ -2457,6 +2466,15 @@ class HUDService : Service(),
     override fun onSpeedUpdate(kph: Double) {
         hudDisplayManager.updatePace(kph)
         // Recording is handled via onWorkoutStateChanged - no fallback needed here
+        // Track the user's last running speed/incline for the Resume button.
+        if (kph > 0.0) {
+            lastNonZeroSpeedKph = state.getDisplayAdjustedSpeed()
+            lastNonZeroInclinePercent = state.currentInclinePercent
+        } else if (lastNonZeroSpeedKph > 0.0) {
+            // Belt just stopped — persist this user's last settings (once).
+            persistLastResumeSettings(lastNonZeroSpeedKph, lastNonZeroInclinePercent)
+            lastNonZeroSpeedKph = 0.0
+        }
     }
 
     override fun onInclineUpdate(percent: Double) {
@@ -2645,6 +2663,42 @@ class HUDService : Service(),
     }
 
     // ==================== HUDDisplayManager.Listener ====================
+
+    override fun onResumeClicked() {
+        // Resume the selected user's last settings: start the belt at their last
+        // speed + incline. Physical Stop button and safety key always override.
+        val prefs = getSharedPreferences(
+            ProfileManager.prefsName(ProfileManager.getActiveProfileId(applicationContext)),
+            Context.MODE_PRIVATE
+        )
+        val savedSpeed = prefs.getFloat(keyLastResumeSpeed, 0f).toDouble()
+        val savedIncline = prefs.getFloat(keyLastResumeIncline, 0f).toDouble()
+        val speed = when {
+            lastNonZeroSpeedKph > 0.0 -> lastNonZeroSpeedKph
+            savedSpeed > 0.0 -> savedSpeed
+            else -> defaultResumeSpeedKph
+        }
+        val incline = if (lastNonZeroSpeedKph > 0.0) lastNonZeroInclinePercent else savedIncline
+        Log.d(TAG, "Resume: starting belt at $speed kph, incline $incline% for active profile")
+        mainHandler.post {
+            popupManager.startBeltAtSpeed(speed)
+            if (incline != 0.0) telemetryManager.setTreadmillIncline(incline)
+        }
+    }
+
+    private fun persistLastResumeSettings(speedKph: Double, inclinePercent: Double) {
+        try {
+            getSharedPreferences(
+                ProfileManager.prefsName(ProfileManager.getActiveProfileId(applicationContext)),
+                Context.MODE_PRIVATE
+            ).edit()
+                .putFloat(keyLastResumeSpeed, speedKph.toFloat())
+                .putFloat(keyLastResumeIncline, inclinePercent.toFloat())
+                .apply()
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to persist last resume settings: ${e.message}")
+        }
+    }
 
     override fun onPaceBoxClicked() {
         popupManager.togglePacePopup()
