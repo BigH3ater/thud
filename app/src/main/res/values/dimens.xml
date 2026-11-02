@@ -233,7 +233,7 @@
     <!-- ==================== User Button &amp; Dropdown ==================== -->
 
     <dimen name="hud_user_icon_size">40dp</dimen>
-    <dimen name="hud_user_name_text_size">28sp</dimen>
+    <dimen name="hud_user_name_text_size">22sp</dimen>
     <dimen name="user_popup_item_padding">12dp</dimen>
     <dimen name="user_popup_item_spacing">4dp</dimen>
     <dimen name="user_popup_icon_size">18dp</dimen>

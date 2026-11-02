@@ -191,9 +191,11 @@ object ProfileManager {
         // Clean up Downloads folder
         deleteDownloadsFolder(context, profile.name)
 
-        // If active profile was deleted, switch to Guest
+        // If the active profile was deleted, switch to the first remaining one
+        // (there is no Guest profile to fall back to anymore).
         if (getActiveProfileId(context) == profileId) {
-            setActiveProfile(context, GUEST_PROFILE_ID)
+            val remaining = getAllProfiles(context).firstOrNull()?.id ?: GUEST_PROFILE_ID
+            setActiveProfile(context, remaining)
         }
 
         Log.i(TAG, "Deleted profile: ${profile.name} ($profileId)")
@@ -261,23 +263,26 @@ object ProfileManager {
      * or Room DB access, because Android caches these on first access.
      */
     private fun migrateExistingData(context: Context, registry: android.content.SharedPreferences) {
+        // kdk: migrate the existing single-user data into "Jacob" and seed
+        // "Rachel"; no base "User", no "Guest".
         val userId = UUID.randomUUID().toString().take(8)
         val userProfile = UserProfile(
             id = userId,
-            name = "User",
+            name = "Jacob",
             pinHash = null,
             createdAt = System.currentTimeMillis()
         )
-        val guestProfile = UserProfile(
-            id = GUEST_PROFILE_ID,
-            name = GUEST_PROFILE_NAME,
+        val rachelId = UUID.randomUUID().toString().take(8)
+        val rachelProfile = UserProfile(
+            id = rachelId,
+            name = "Rachel",
             pinHash = null,
             createdAt = System.currentTimeMillis()
         )
 
         // Create profile directories
         val userDir = profileDir(context, userId)
-        profileDir(context, GUEST_PROFILE_ID)
+        profileDir(context, rachelId)
 
         // 1. Move Room database files
         val dbDir = context.getDatabasePath(DB_FILENAME).parentFile
@@ -318,46 +323,38 @@ object ProfileManager {
         migrateDownloadsFolder(context, userProfile.name)
 
         // 6. Save registry
-        val profiles = listOf(guestProfile, userProfile)
+        val profiles = listOf(userProfile, rachelProfile)
         val profilesJson = serializeProfiles(profiles)
         registry.edit()
             .putString(KEY_PROFILES_JSON, profilesJson)
             .putString(KEY_ACTIVE_ID, userId)
             .apply()
 
-        Log.i(TAG, "Migration complete: created User profile ($userId) + Guest")
+        Log.i(TAG, "Migration complete: migrated data to Jacob ($userId) + seeded Rachel ($rachelId)")
     }
 
     /**
      * Create profiles for a fresh installation (no existing data).
      */
     private fun createFreshInstall(context: Context, registry: android.content.SharedPreferences) {
-        val userId = UUID.randomUUID().toString().take(8)
-        val userProfile = UserProfile(
-            id = userId,
-            name = "User",
-            pinHash = null,
-            createdAt = System.currentTimeMillis()
-        )
-        val guestProfile = UserProfile(
-            id = GUEST_PROFILE_ID,
-            name = GUEST_PROFILE_NAME,
-            pinHash = null,
-            createdAt = System.currentTimeMillis()
-        )
+        // kdk: seed the household profiles directly — NO base "User", NO "Guest" —
+        // so a (re)install comes up with exactly Jacob + Rachel, matching the HA
+        // tm_current_walker options. Rename or add more via the User chip.
+        val jacobId = UUID.randomUUID().toString().take(8)
+        val rachelId = UUID.randomUUID().toString().take(8)
+        val jacob = UserProfile(jacobId, "Jacob", null, System.currentTimeMillis())
+        val rachel = UserProfile(rachelId, "Rachel", null, System.currentTimeMillis())
 
-        // Create profile directories
-        profileDir(context, userId)
-        profileDir(context, GUEST_PROFILE_ID)
+        profileDir(context, jacobId)
+        profileDir(context, rachelId)
 
-        val profiles = listOf(guestProfile, userProfile)
-        val profilesJson = serializeProfiles(profiles)
+        val profiles = listOf(jacob, rachel)
         registry.edit()
-            .putString(KEY_PROFILES_JSON, profilesJson)
-            .putString(KEY_ACTIVE_ID, userId)
+            .putString(KEY_PROFILES_JSON, serializeProfiles(profiles))
+            .putString(KEY_ACTIVE_ID, jacobId)
             .apply()
 
-        Log.i(TAG, "Fresh install: created User ($userId) + Guest")
+        Log.i(TAG, "Fresh install: created Jacob ($jacobId) + Rachel ($rachelId)")
     }
 
     // ==================== Downloads Folder Management ====================
