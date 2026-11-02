@@ -354,9 +354,6 @@ class HUDDisplayManager(
      * - Paused: Show pause icon ❚❚ with normal background
      */
     private fun updatePaceDisplay() {
-        val isIdle = currentTreadmillState != WorkoutState.WORKOUT_STATE_PAUSED &&
-                (currentTreadmillState != WorkoutState.WORKOUT_STATE_RUNNING || lastSpeedKph <= 0)
-
         val displayText = when {
             currentTreadmillState == WorkoutState.WORKOUT_STATE_PAUSED -> "❚❚"
             currentTreadmillState == WorkoutState.WORKOUT_STATE_RUNNING && lastSpeedKph > 0 -> {
@@ -365,9 +362,7 @@ class HUDDisplayManager(
             else -> "▶"  // Idle or stopped
         }
         tvPace?.text = displayText
-
-        // Update paceBox background: green when idle (ready to start), normal otherwise
-        paceBox?.setBackgroundColor(if (isIdle) colorHrZone3 else colorBoxInteractive)
+        // Speed tile keeps its Kodiak accent-bar drawable (set in hud_top.xml) — no neon swap.
     }
 
     /**
