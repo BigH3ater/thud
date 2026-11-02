@@ -80,6 +80,14 @@ class MainActivity : AppCompatActivity() {
         if (hasFocus) enterImmersive()
     }
 
+    override fun onResume() {
+        super.onResume()
+        enterImmersive()
+        // Returning to the MackTrack home re-shows the HUD (it is hidden while a
+        // launched app is in the foreground so it doesn't cover the video).
+        if (Settings.canDrawOverlays(this)) showHud()
+    }
+
     private fun enterImmersive() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
         WindowInsetsControllerCompat(window, window.decorView).apply {
@@ -145,6 +153,7 @@ class MainActivity : AppCompatActivity() {
                 }
                 if (intent != null) {
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    hideHud()  // get the overlay out of the way so the app is full-screen
                     startActivity(intent)
                 }
             } catch (e: Exception) {
@@ -186,6 +195,14 @@ class MainActivity : AppCompatActivity() {
     private fun showHud() {
         val intent = Intent(this, HUDService::class.java).apply {
             action = HUDService.ACTION_SHOW_HUD
+        }
+        startForegroundService(intent)
+    }
+
+    /** Hide the HUD overlay (e.g. while a launched app is in the foreground). */
+    private fun hideHud() {
+        val intent = Intent(this, HUDService::class.java).apply {
+            action = HUDService.ACTION_HIDE_HUD
         }
         startForegroundService(intent)
     }
