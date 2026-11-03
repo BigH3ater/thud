@@ -48,7 +48,7 @@
 
         <TextView
             android:id="@+id/tvRawSpeed"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/default_raw_speed"
             android:textColor="@color/kdk_info"
@@ -77,7 +77,7 @@
 
         <TextView
             android:id="@+id/tvIncline"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/default_incline"
             android:textColor="@color/kdk_warn"
@@ -105,7 +105,7 @@
 
         <TextView
             android:id="@+id/tvDistance"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/default_distance"
             android:textColor="@color/kdk_green"
@@ -133,7 +133,7 @@
 
         <TextView
             android:id="@+id/tvCalories"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/default_calories"
             android:textColor="@color/kdk_ember"
@@ -161,7 +161,7 @@
 
         <TextView
             android:id="@+id/tvTime"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/default_time"
             android:textColor="@color/kdk_paper"

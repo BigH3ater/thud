@@ -57,12 +57,21 @@
         <item name="android:textColor">@color/text_label_dim</item>
     </style>
 
-    <!-- Value text (main numbers) -->
+    <!-- Value text (main numbers). Width is match_parent + centered so autosize has a
+         width bound to shrink against: at 5 tiles the long values (0.00, 0:00, and
+         times past an hour like 1:02:34) no longer fit 60sp, so uniform autosize
+         scales each number down to its tile instead of ellipsizing ("0....", "0:..."). -->
     <style name="HudText.Value">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:gravity">center</item>
         <item name="android:textColor">@color/text_primary</item>
         <item name="android:textSize">@dimen/text_value</item>
         <item name="android:textStyle">bold</item>
         <item name="android:singleLine">true</item>
+        <item name="android:autoSizeTextType">uniform</item>
+        <item name="android:autoSizeMinTextSize">22sp</item>
+        <item name="android:autoSizeMaxTextSize">@dimen/text_value</item>
+        <item name="android:autoSizeStepGranularity">2sp</item>
     </style>
 
     <!-- Unit text (min/km, grade, etc.) -->
