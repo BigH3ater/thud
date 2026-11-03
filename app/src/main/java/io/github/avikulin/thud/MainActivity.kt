@@ -31,16 +31,12 @@ class MainActivity : AppCompatActivity() {
 
     // Default launch targets. Override per-install without a rebuild via
     // files/kdk-launcher.conf (lines "key=url:https://…" or "key=pkg:com.x.y").
-    // This console is de-Googled (no Play Store / GMS), so ALL six open as web
-    // players in the system browser (webview_shell) rather than native packages.
-    // Streaming web players use Widevine; verify playback on-device (WebView is
-    // Widevine L3 at best, so some DRM content may not play).
+    // The console's WAN is blocked at UniFi, so only self-hosted LAN apps are
+    // offered (jellyfin/abs/calibre on kmkdp.com); the public streaming tiles were
+    // removed because they can never reach the internet.
     private val launchDefaults = mapOf(
-        "discovery" to "url:https://www.discoveryplus.com",
         "jellyfin" to "url:https://jellyfin.kmkdp.com",
-        "audible" to "url:https://www.audible.com/library/titles",
         "abs" to "url:https://audiobookshelf.kmkdp.com",
-        "spotify" to "url:https://open.spotify.com",
         "calibre" to "url:https://calibre.kmkdp.com"
     )
 
@@ -109,11 +105,8 @@ class MainActivity : AppCompatActivity() {
         findViewById<View>(R.id.launcherClose)?.setOnClickListener { overlay?.visibility = View.GONE }
 
         val tiles = mapOf(
-            R.id.appDiscovery to "discovery",
             R.id.appJellyfin to "jellyfin",
-            R.id.appAudible to "audible",
             R.id.appAbs to "abs",
-            R.id.appSpotify to "spotify",
             R.id.appCalibre to "calibre"
         )
         for ((id, key) in tiles) {

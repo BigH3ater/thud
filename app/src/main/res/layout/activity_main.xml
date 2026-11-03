@@ -144,10 +144,6 @@
             <!-- WATCH -->
             <TextView style="@style/KdkGroupLabel" android:text="@string/group_watch" />
             <LinearLayout style="@style/KdkAppRow">
-                <LinearLayout android:id="@+id/appDiscovery" style="@style/KdkAppTile">
-                    <TextView style="@style/KdkAppLogo" android:text="D+" android:background="@color/kdk_info" />
-                    <TextView style="@style/KdkAppName" android:text="@string/app_discovery" />
-                </LinearLayout>
                 <LinearLayout android:id="@+id/appJellyfin" style="@style/KdkAppTile">
                     <TextView style="@style/KdkAppLogo" android:text="J" android:background="@color/kdk_rust" />
                     <TextView style="@style/KdkAppName" android:text="@string/app_jellyfin" />
@@ -157,17 +153,9 @@
             <!-- LISTEN -->
             <TextView style="@style/KdkGroupLabel" android:text="@string/group_listen" />
             <LinearLayout style="@style/KdkAppRow">
-                <LinearLayout android:id="@+id/appAudible" style="@style/KdkAppTile">
-                    <TextView style="@style/KdkAppLogo" android:text="a." android:background="@color/kdk_bark" />
-                    <TextView style="@style/KdkAppName" android:text="@string/app_audible" />
-                </LinearLayout>
                 <LinearLayout android:id="@+id/appAbs" style="@style/KdkAppTile">
                     <TextView style="@style/KdkAppLogo" android:text="A" android:background="@color/kdk_warn" />
                     <TextView style="@style/KdkAppName" android:text="@string/app_abs" />
-                </LinearLayout>
-                <LinearLayout android:id="@+id/appSpotify" style="@style/KdkAppTile">
-                    <TextView style="@style/KdkAppLogo" android:text="♪" android:background="@color/kdk_green_d" />
-                    <TextView style="@style/KdkAppName" android:text="@string/app_spotify" />
                 </LinearLayout>
             </LinearLayout>
 
