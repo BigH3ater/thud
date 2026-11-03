@@ -31,14 +31,16 @@ class MainActivity : AppCompatActivity() {
 
     // Default launch targets. Override per-install without a rebuild via
     // files/kdk-launcher.conf (lines "key=url:https://…" or "key=pkg:com.x.y").
-    // Browser trio (jellyfin/abs/calibre) opens in the system browser (Jelly);
-    // commercial trio (discovery/audible/spotify) launches the sideloaded package.
+    // This console is de-Googled (no Play Store / GMS), so ALL six open as web
+    // players in the system browser (webview_shell) rather than native packages.
+    // Streaming web players use Widevine; verify playback on-device (WebView is
+    // Widevine L3 at best, so some DRM content may not play).
     private val launchDefaults = mapOf(
-        "discovery" to "pkg:com.discovery.discoveryplus.mobile",
+        "discovery" to "url:https://www.discoveryplus.com",
         "jellyfin" to "url:https://jellyfin.kmkdp.com",
-        "audible" to "pkg:com.audible.application",
+        "audible" to "url:https://www.audible.com/library/titles",
         "abs" to "url:https://audiobookshelf.kmkdp.com",
-        "spotify" to "pkg:com.spotify.music",
+        "spotify" to "url:https://open.spotify.com",
         "calibre" to "url:https://calibre.kmkdp.com"
     )
 
