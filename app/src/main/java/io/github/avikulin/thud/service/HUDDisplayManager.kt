@@ -187,6 +187,7 @@ class HUDDisplayManager(
             tvRawSpeed = topView?.findViewById(R.id.tvRawSpeed)
             tvDistance = topView?.findViewById(R.id.tvDistance)
             tvCalories = topView?.findViewById(R.id.tvCalories)
+            tvTime = topView?.findViewById(R.id.tvTime)
             btnResume = topView?.findViewById(R.id.btnResume)
 
             // Touchable boxes + chrome

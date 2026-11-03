@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
   MackTrack / Kodiak trimmed HUD.
-  One row: Resume · Speed(mph) · Incline · Distance(mi) · Calories · User · ⚙ · ✕
+  One row: Resume · Speed(mph) · Incline · Distance(mi) · Calories · Time · User · ⚙ · ✕
   IDs preserved from upstream so HUDDisplayManager binds them (all findViewById are
-  null-safe, so the dropped tiles — pace/HR/DFA/footpod/time/climb/TSS and the
+  null-safe, so the dropped tiles — pace/HR/DFA/footpod/climb/TSS and the
   camera/chart/bluetooth/remote/workouts buttons — simply resolve to null).
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -142,6 +142,35 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:text="@string/unit_kcal"
+            style="@style/HudText.Unit" />
+    </LinearLayout>
+
+    <!-- Time (elapsed, MM:SS) — ticks live via onElapsedTimeUpdate -->
+    <LinearLayout
+        style="@style/HudBox.Data"
+        android:background="@drawable/kdk_tile_bg"
+        android:layout_marginStart="@dimen/box_margin"
+        android:layout_marginEnd="@dimen/box_margin">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/label_time"
+            style="@style/HudText.Label" />
+
+        <TextView
+            android:id="@+id/tvTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/default_time"
+            android:textColor="@color/kdk_paper"
+            style="@style/HudText.Value" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="invisible"
             android:text="@string/unit_kcal"
             style="@style/HudText.Unit" />
     </LinearLayout>

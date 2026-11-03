@@ -723,6 +723,7 @@ class HUDService : Service(),
         hudDisplayManager.updateTrainingMetrics(0.0)  // Reset TSS display
         hudDisplayManager.updateDistance(0.0)  // Reset distance display
         hudDisplayManager.updateCalories(0.0)  // Reset calories display
+        hudDisplayManager.updateElapsedTime(0)  // Reset timer display
         hudDisplayManager.updateClimb(0.0)  // Reset climb display
         workoutDataExported = false
         lastWorkoutName = null
