@@ -29,6 +29,22 @@ protobuf {
     }
 }
 
+// kdk: version from CI (-PkdkVersionCode=<git rev-list --count HEAD>, -PkdkVersionName=<git describe>).
+val kdkVersionCode = providers.gradleProperty("kdkVersionCode").orNull?.toIntOrNull() ?: 1
+val kdkVersionName = providers.gradleProperty("kdkVersionName").orNull ?: "dev"
+
+// kdk: stable signing key. Only when BOTH env vars are set (CI with repo secrets) is the
+// debug signingConfig pointed at the kdk PKCS12 keystore (alias thud-kdk, one password for
+// store and key). Otherwise the default debug key stays, so local builds keep working.
+val kdkKeystoreB64 = providers.environmentVariable("KDK_KEYSTORE_B64").orNull?.takeIf { it.isNotBlank() }
+val kdkKeystorePass = providers.environmentVariable("KDK_KEYSTORE_PASS").orNull?.takeIf { it.isNotBlank() }
+val kdkKeystoreFile: File? = if (kdkKeystoreB64 != null && kdkKeystorePass != null) {
+    layout.buildDirectory.file("kdk/thud-kdk.p12").get().asFile.also { f ->
+        f.parentFile.mkdirs()
+        f.writeBytes(java.util.Base64.getMimeDecoder().decode(kdkKeystoreB64))
+    }
+} else null
+
 android {
     namespace = "io.github.avikulin.thud"
     compileSdk = 35
@@ -37,13 +53,26 @@ android {
         applicationId = "io.github.avikulin.thud"
         minSdk = 33
         targetSdk = 35 
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = kdkVersionCode
+        versionName = kdkVersionName
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    if (kdkKeystoreFile != null) {
+        signingConfigs {
+            getByName("debug") {
+                storeFile = kdkKeystoreFile
+                storeType = "PKCS12"
+                storePassword = kdkKeystorePass
+                keyAlias = "thud-kdk"
+                keyPassword = kdkKeystorePass
+            }
+        }
+    }
+
     buildTypes {
+        // debug stays debuggable (default): tm-install/tm-smoke rely on run-as.
         release {
             isMinifyEnabled = true
             isShrinkResources = true
