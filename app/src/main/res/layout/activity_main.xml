@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Kiosk backdrop (behind the HUD overlay). Brand sits just below the HUD band;
-     a single Apps button (bottom-right) opens the Watch/Listen/Read launcher. -->
+     a bottom bar holds the belt controls and the Apps button (Watch/Listen/Read launcher). -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/kioskRoot"
     android:layout_width="match_parent"
@@ -47,52 +47,90 @@
         <View android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="81" />
     </LinearLayout>
 
-    <!-- Single Apps launcher button -->
+    <!-- Bottom control bar (kdk): Start · Stop · Resume · Previous, then the Apps
+         launcher. One horizontal row pinned to the bottom so nothing overlaps the
+         brand (which ends just under the top 19% HUD band) or the Apps tile. The
+         buttons send intents to HUDService, which owns the belt (GlassOS). -->
     <LinearLayout
-        android:id="@+id/appsButton"
-        android:layout_width="wrap_content"
+        android:id="@+id/kdkControlBar"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_marginEnd="28dp"
-        android:layout_marginBottom="28dp"
+        android:layout_gravity="bottom"
+        android:layout_marginStart="@dimen/kdk_bottom_margin"
+        android:layout_marginEnd="@dimen/kdk_bottom_margin"
+        android:layout_marginBottom="@dimen/kdk_bottom_margin"
         android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:paddingStart="18dp"
-        android:paddingEnd="20dp"
-        android:paddingTop="12dp"
-        android:paddingBottom="12dp"
-        android:background="@drawable/kdk_apps_bg"
-        android:clickable="true"
-        android:focusable="true">
+        android:gravity="center_vertical">
 
         <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="▦"
-            android:textColor="@color/kdk_ember"
-            android:textSize="30sp"
-            android:paddingEnd="12dp" />
+            android:id="@+id/btnCtlStart"
+            style="@style/KdkControlButton"
+            android:text="@string/kdk_ctl_start"
+            android:textColor="@color/kdk_green" />
 
+        <TextView
+            android:id="@+id/btnCtlStop"
+            style="@style/KdkControlButton"
+            android:text="@string/kdk_ctl_stop"
+            android:textColor="@color/kdk_danger" />
+
+        <TextView
+            android:id="@+id/btnCtlResume"
+            style="@style/KdkControlButton"
+            android:background="@drawable/kdk_resume_bg"
+            android:text="@string/kdk_ctl_resume"
+            android:textColor="@color/kdk_ink" />
+
+        <TextView
+            android:id="@+id/btnCtlPrevious"
+            style="@style/KdkControlButton"
+            android:text="@string/kdk_ctl_previous"
+            android:textColor="@color/kdk_info" />
+
+        <!-- Apps launcher (unchanged look; now the last item of the bar) -->
         <LinearLayout
+            android:id="@+id/appsButton"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:layout_height="@dimen/kdk_control_height"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="18dp"
+            android:paddingEnd="20dp"
+            android:paddingTop="12dp"
+            android:paddingBottom="12dp"
+            android:background="@drawable/kdk_apps_bg"
+            android:clickable="true"
+            android:focusable="true">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/launcher_apps"
-                android:textColor="@color/kdk_paper"
-                android:textStyle="bold"
-                android:textSize="20sp" />
+                android:text="▦"
+                android:textColor="@color/kdk_ember"
+                android:textSize="30sp"
+                android:paddingEnd="12dp" />
 
-            <TextView
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/launcher_groups"
-                android:textColor="@color/kdk_ash"
-                android:textSize="12sp"
-                android:fontFamily="monospace" />
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/launcher_apps"
+                    android:textColor="@color/kdk_paper"
+                    android:textStyle="bold"
+                    android:textSize="20sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/launcher_groups"
+                    android:textColor="@color/kdk_ash"
+                    android:textSize="12sp"
+                    android:fontFamily="monospace" />
+            </LinearLayout>
         </LinearLayout>
     </LinearLayout>
 

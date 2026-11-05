@@ -69,7 +69,6 @@ class HUDDisplayManager(
     private var tvHrSubtitle: TextView? = null
     private var tvClimb: TextView? = null
     private var tvCalories: TextView? = null
-    private var btnResume: View? = null
     private var paceBox: View? = null
     private var inclineBox: View? = null
     private var hrBox: View? = null
@@ -188,7 +187,6 @@ class HUDDisplayManager(
             tvDistance = topView?.findViewById(R.id.tvDistance)
             tvCalories = topView?.findViewById(R.id.tvCalories)
             tvTime = topView?.findViewById(R.id.tvTime)
-            btnResume = topView?.findViewById(R.id.btnResume)
 
             // Touchable boxes + chrome
             paceBox = topView?.findViewById(R.id.paceBox)
@@ -218,8 +216,7 @@ class HUDDisplayManager(
             colorDfaWaiting = ContextCompat.getColor(service, R.color.dfa_zone_waiting)
 
             // Set up touch handlers
-            // Resume = resume the selected user's last settings (direct start, no popup).
-            btnResume?.setOnClickListener { listener?.onResumeClicked() }
+            // Resume moved to the kiosk bottom bar (MainActivity -> ACTION_KDK_RESUME).
             paceBox?.setOnClickListener { listener?.onPaceBoxClicked() }
             inclineBox?.setOnClickListener { listener?.onInclineBoxClicked() }
             hrBox?.setOnClickListener { listener?.onHrBoxClicked() }
@@ -703,11 +700,12 @@ class HUDDisplayManager(
     }
 
     /**
-     * Update the user button to show the first 5 characters of the profile name.
+     * Update the user button with the full profile name (kdk: was cut to 5 chars,
+     * which clipped "Rachel" to "Rache"; the chip is wrap_content with a min width).
      */
     fun updateUserButton(profileName: String) {
         mainHandler.post {
-            btnUserName?.text = if (profileName.length > 5) profileName.take(5) else profileName
+            btnUserName?.text = profileName
         }
     }
 

@@ -67,9 +67,11 @@
         <item name="android:textColor">@color/text_primary</item>
         <item name="android:textSize">@dimen/text_value</item>
         <item name="android:textStyle">bold</item>
-        <item name="android:singleLine">true</item>
+        <!-- maxLines, not singleLine: singleLine + autosize falls back to ellipsizing. -->
+        <item name="android:maxLines">1</item>
+        <item name="android:ellipsize">none</item>
         <item name="android:autoSizeTextType">uniform</item>
-        <item name="android:autoSizeMinTextSize">22sp</item>
+        <item name="android:autoSizeMinTextSize">18sp</item>
         <item name="android:autoSizeMaxTextSize">@dimen/text_value</item>
         <item name="android:autoSizeStepGranularity">2sp</item>
     </style>
@@ -151,4 +153,26 @@
         <item name="android:background">@drawable/service_button_border</item>
     </style>
 
+    <!-- kdk bottom control bar (kiosk backdrop): Start / Stop / Resume / Previous -->
+    <style name="KdkControlButton">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">@dimen/kdk_control_height</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:layout_marginEnd">@dimen/kdk_control_gap</item>
+        <item name="android:gravity">center</item>
+        <item name="android:paddingStart">8dp</item>
+        <item name="android:paddingEnd">8dp</item>
+        <item name="android:background">@drawable/kdk_tile_bg</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">22sp</item>
+        <item name="android:fontFamily">sans-serif-condensed</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:ellipsize">none</item>
+        <item name="android:autoSizeTextType">uniform</item>
+        <item name="android:autoSizeMinTextSize">14sp</item>
+        <item name="android:autoSizeMaxTextSize">22sp</item>
+        <item name="android:autoSizeStepGranularity">1sp</item>
+    </style>
 </resources>

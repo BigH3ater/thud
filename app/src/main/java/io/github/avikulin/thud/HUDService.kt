@@ -97,6 +97,8 @@ class HUDService : Service(),
 
     companion object {
         private const val TAG = "HUDService"
+        // kdk: belt must stay stopped this long before the run is saved + cleared.
+        private const val SESSION_END_DELAY_MS = 120_000L
 
         // Service actions
         const val ACTION_START_SERVICE = "io.github.avikulin.thud.START_SERVICE"
@@ -117,6 +119,12 @@ class HUDService : Service(),
         const val ACTION_ACTIVITY_FOREGROUND = "io.github.avikulin.thud.ACTIVITY_FOREGROUND"
         const val ACTION_ACTIVITY_BACKGROUND = "io.github.avikulin.thud.ACTIVITY_BACKGROUND"
         const val ACTION_ACTIVITY_CLOSED = "io.github.avikulin.thud.ACTIVITY_CLOSED"
+
+        // kdk bottom control bar (MainActivity) actions
+        const val ACTION_KDK_START = "io.github.avikulin.thud.KDK_START"
+        const val ACTION_KDK_STOP = "io.github.avikulin.thud.KDK_STOP"
+        const val ACTION_KDK_RESUME = "io.github.avikulin.thud.KDK_RESUME"
+        const val ACTION_KDK_PREVIOUS = "io.github.avikulin.thud.KDK_PREVIOUS"
 
         // Profile switch action
         const val ACTION_SWITCH_PROFILE = "io.github.avikulin.thud.SWITCH_PROFILE"
@@ -285,6 +293,10 @@ class HUDService : Service(),
     // walking; persisted to the ACTIVE PROFILE's prefs when the belt stops, so Resume
     // restarts each user at their own last pace/incline.
     @Volatile private var lastNonZeroSpeedKph = 0.0
+    // kdk: this session's last moving speed/incline. Unlike lastNonZeroSpeedKph it is
+    // NOT zeroed when the belt stops; it is cleared when the run is reset.
+    @Volatile private var sessionLastSpeedKph = 0.0
+    @Volatile private var sessionLastInclinePercent = 0.0
     @Volatile private var lastNonZeroInclinePercent = 0.0
     private val keyLastResumeSpeed = "last_resume_speed_kph"
     private val keyLastResumeIncline = "last_resume_incline"
@@ -575,6 +587,10 @@ class HUDService : Service(),
                 Log.d(TAG, "Toggling HUD")
                 if (state.isHudVisible.get()) hideHud() else showHud()
             }
+            ACTION_KDK_START -> onKdkStartClicked()
+            ACTION_KDK_STOP -> onKdkStopClicked()
+            ACTION_KDK_RESUME -> onResumeClicked()
+            ACTION_KDK_PREVIOUS -> onKdkPreviousClicked()
             ACTION_STOP_SERVICE -> {
                 Log.d(TAG, "Stopping service")
                 stopSelf()
@@ -724,6 +740,8 @@ class HUDService : Service(),
         hudDisplayManager.updateDistance(0.0)  // Reset distance display
         hudDisplayManager.updateCalories(0.0)  // Reset calories display
         hudDisplayManager.updateElapsedTime(0)  // Reset timer display
+        sessionLastSpeedKph = 0.0
+        sessionLastInclinePercent = 0.0
         hudDisplayManager.updateClimb(0.0)  // Reset climb display
         workoutDataExported = false
         lastWorkoutName = null
@@ -2465,29 +2483,37 @@ class HUDService : Service(),
         }
     }
 
+    // kdk: deferred end-of-session clear (see onSpeedUpdate). Runs on mainHandler.
+    private val endSessionRunnable = Runnable {
+        if (state.currentSpeedKph <= 0.0 && workoutRecorder.getDataPointCount() > 0) {
+            val name = workoutEngineManager.getCurrentWorkout()?.name
+                ?: lastWorkoutName
+                ?: getString(R.string.free_run_name)
+            saveAndClearRun(name)
+        }
+    }
+
     override fun onSpeedUpdate(kph: Double) {
         hudDisplayManager.updatePace(kph)
         // Recording is handled via onWorkoutStateChanged - no fallback needed here
         // Track the user's last running speed/incline for the Resume button.
         if (kph > 0.0) {
+            // Belt moving again: cancel any pending end-of-session clear.
+            mainHandler.removeCallbacks(endSessionRunnable)
             lastNonZeroSpeedKph = state.getDisplayAdjustedSpeed()
             lastNonZeroInclinePercent = state.currentInclinePercent
+            sessionLastSpeedKph = lastNonZeroSpeedKph
+            sessionLastInclinePercent = lastNonZeroInclinePercent
         } else if (lastNonZeroSpeedKph > 0.0) {
             // Belt just stopped — persist this user's last settings (once).
             persistLastResumeSettings(lastNonZeroSpeedKph, lastNonZeroInclinePercent)
             lastNonZeroSpeedKph = 0.0
-            // End the session on stop: save the run (FIT export, which also emits the
-            // HA run_end webhook) and zero the HUD (distance/calories/etc.) so the next
-            // walk starts fresh. Per-person HA totals come from the independent bridge
-            // path + the speed-based session-end automation. No-op if there is no run.
-            mainHandler.post {
-                if (workoutRecorder.getDataPointCount() > 0) {
-                    val name = workoutEngineManager.getCurrentWorkout()?.name
-                        ?: lastWorkoutName
-                        ?: getString(R.string.free_run_name)
-                    saveAndClearRun(name)
-                }
-            }
+            // End the session only after the belt has stayed stopped for
+            // SESSION_END_DELAY_MS (same 2-min rule as HA's tm_session_end). A Pause
+            // followed by Resume/Start inside that window keeps the run, so the TIME,
+            // distance and calorie tiles continue instead of restarting at 0:00.
+            mainHandler.removeCallbacks(endSessionRunnable)
+            mainHandler.postDelayed(endSessionRunnable, SESSION_END_DELAY_MS)
         }
     }
 
@@ -2689,14 +2715,76 @@ class HUDService : Service(),
         val savedIncline = prefs.getFloat(keyLastResumeIncline, 0f).toDouble()
         val speed = when {
             lastNonZeroSpeedKph > 0.0 -> lastNonZeroSpeedKph
+            sessionLastSpeedKph > 0.0 -> sessionLastSpeedKph  // kdk: current run, belt stopped
             savedSpeed > 0.0 -> savedSpeed
             else -> defaultResumeSpeedKph
         }
-        val incline = if (lastNonZeroSpeedKph > 0.0) lastNonZeroInclinePercent else savedIncline
+        val incline = when {
+            lastNonZeroSpeedKph > 0.0 -> lastNonZeroInclinePercent
+            sessionLastSpeedKph > 0.0 -> sessionLastInclinePercent
+            else -> savedIncline
+        }
         Log.d(TAG, "Resume: starting belt at $speed kph, incline $incline% for active profile")
         mainHandler.post {
             popupManager.startBeltAtSpeed(speed)
             if (incline != 0.0) telemetryManager.setTreadmillIncline(incline)
+        }
+    }
+
+    /**
+     * kdk Start: begin a NEW session at a safe default (defaultResumeSpeedKph, 0 %).
+     * Any run still held from a recent Stop is saved (FIT + HA run_end) first.
+     */
+    private fun onKdkStartClicked() {
+        mainHandler.post {
+            mainHandler.removeCallbacks(endSessionRunnable)
+            if (workoutRecorder.getDataPointCount() > 0) {
+                val name = workoutEngineManager.getCurrentWorkout()?.name
+                    ?: lastWorkoutName
+                    ?: getString(R.string.free_run_name)
+                saveAndClearRun(name)
+            }
+            // From PAUSED, GlassOS resumes (handleTreadmillRunning -> resumeRun), which
+            // would not open a new run, so open it here. From IDLE handleTreadmillRunning
+            // calls startNewRun() itself.
+            if (state.treadmillWorkoutState == WorkoutState.WORKOUT_STATE_PAUSED) {
+                startNewRun()
+            }
+            Log.d(TAG, "kdk Start: new session at $defaultResumeSpeedKph kph, 0%")
+            popupManager.startBeltAtSpeed(defaultResumeSpeedKph)
+            telemetryManager.setTreadmillIncline(0.0)
+        }
+    }
+
+    /**
+     * kdk Stop: belt to 0 via GlassOS PAUSE (not Stop), so the run is kept and a
+     * Resume/Start inside 2 minutes continues it; endSessionRunnable ends it after.
+     */
+    private fun onKdkStopClicked() {
+        serviceScope.launch(Dispatchers.IO) {
+            val ok = telemetryManager.pauseTreadmill()
+            Log.d(TAG, "kdk Stop: pause belt -> $ok")
+        }
+    }
+
+    /**
+     * kdk Previous settings: start the belt at the active profile's persisted
+     * last-resume speed/incline (persistLastResumeSettings), else the safe default.
+     */
+    private fun onKdkPreviousClicked() {
+        val prefs = getSharedPreferences(
+            ProfileManager.prefsName(ProfileManager.getActiveProfileId(applicationContext)),
+            Context.MODE_PRIVATE
+        )
+        val savedSpeed = prefs.getFloat(keyLastResumeSpeed, 0f).toDouble()
+        val savedIncline = prefs.getFloat(keyLastResumeIncline, 0f).toDouble()
+        val speed = if (savedSpeed > 0.0) savedSpeed else defaultResumeSpeedKph
+        val incline = if (savedSpeed > 0.0) savedIncline else 0.0
+        Log.d(TAG, "kdk Previous: starting belt at $speed kph, incline $incline%")
+        mainHandler.post {
+            mainHandler.removeCallbacks(endSessionRunnable)
+            popupManager.startBeltAtSpeed(speed)
+            telemetryManager.setTreadmillIncline(incline)
         }
     }
 

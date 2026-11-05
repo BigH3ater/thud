@@ -144,6 +144,10 @@
     <string name="unit_kcal">kcal</string>
     <string name="default_calories">0</string>
     <string name="btn_resume_start">▶ Resume</string>
+    <string name="kdk_ctl_start">▶ Start</string>
+    <string name="kdk_ctl_stop">■ Stop</string>
+    <string name="kdk_ctl_resume">Resume</string>
+    <string name="kdk_ctl_previous">Previous</string>
     <!-- Launcher -->
     <string name="launcher_apps">Apps</string>
     <string name="launcher_groups">Watch · Listen · Read</string>
