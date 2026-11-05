@@ -69,7 +69,10 @@ if [ -n "$pid" ]; then
   for want in 'HA integration ENABLED' 'Using INTERNAL certs dir' 'KdkSmoke: glassos connected'; do
     if printf '%s' "$logs" | grep -qF "$want"; then pass "logcat: $want"; else miss "logcat: no '$want'"; fi
   done
-  bad="$(printf '%s' "$logs" | grep -E 'UNAVAILABLE|PERMISSION_DENIED|Missing certificates' | head -n3 || true)"
+  # "DisconnectFromConsole failed: UNAVAILABLE: Channel shutdown invoked" is the app closing
+  # its own gRPC channel at the end of a session (seen after every walk); not an error.
+  bad="$(printf '%s' "$logs" | grep -E 'UNAVAILABLE|PERMISSION_DENIED|Missing certificates' \
+    | grep -v 'DisconnectFromConsole failed' | head -n3 || true)"
   if [ -z "$bad" ]; then pass "logcat: no UNAVAILABLE/PERMISSION_DENIED/Missing certificates"
   else miss "logcat errors:"; printf '      %s\n' "$bad"; fi
 else
