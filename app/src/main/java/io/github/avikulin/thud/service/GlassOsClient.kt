@@ -698,6 +698,7 @@ class GlassOsClient(
                 result?.hasConsoleState() == true -> {
                     currentConsoleState = result.consoleState
                     Log.d(TAG, "Console connected, state: $currentConsoleState")
+                    Log.i("KdkSmoke", "glassos connected") // kdk/tm-smoke.sh greps this
                     true
                 }
                 result?.hasError() == true -> {
