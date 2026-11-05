@@ -97,6 +97,8 @@ class HUDService : Service(),
 
     companion object {
         private const val TAG = "HUDService"
+        // kdk: belt must stay stopped this long before the run is saved + cleared.
+        private const val SESSION_END_DELAY_MS = 120_000L
 
         // Service actions
         const val ACTION_START_SERVICE = "io.github.avikulin.thud.START_SERVICE"
@@ -2465,29 +2467,35 @@ class HUDService : Service(),
         }
     }
 
+    // kdk: deferred end-of-session clear (see onSpeedUpdate). Runs on mainHandler.
+    private val endSessionRunnable = Runnable {
+        if (state.currentSpeedKph <= 0.0 && workoutRecorder.getDataPointCount() > 0) {
+            val name = workoutEngineManager.getCurrentWorkout()?.name
+                ?: lastWorkoutName
+                ?: getString(R.string.free_run_name)
+            saveAndClearRun(name)
+        }
+    }
+
     override fun onSpeedUpdate(kph: Double) {
         hudDisplayManager.updatePace(kph)
         // Recording is handled via onWorkoutStateChanged - no fallback needed here
         // Track the user's last running speed/incline for the Resume button.
         if (kph > 0.0) {
+            // Belt moving again: cancel any pending end-of-session clear.
+            mainHandler.removeCallbacks(endSessionRunnable)
             lastNonZeroSpeedKph = state.getDisplayAdjustedSpeed()
             lastNonZeroInclinePercent = state.currentInclinePercent
         } else if (lastNonZeroSpeedKph > 0.0) {
             // Belt just stopped — persist this user's last settings (once).
             persistLastResumeSettings(lastNonZeroSpeedKph, lastNonZeroInclinePercent)
             lastNonZeroSpeedKph = 0.0
-            // End the session on stop: save the run (FIT export, which also emits the
-            // HA run_end webhook) and zero the HUD (distance/calories/etc.) so the next
-            // walk starts fresh. Per-person HA totals come from the independent bridge
-            // path + the speed-based session-end automation. No-op if there is no run.
-            mainHandler.post {
-                if (workoutRecorder.getDataPointCount() > 0) {
-                    val name = workoutEngineManager.getCurrentWorkout()?.name
-                        ?: lastWorkoutName
-                        ?: getString(R.string.free_run_name)
-                    saveAndClearRun(name)
-                }
-            }
+            // End the session only after the belt has stayed stopped for
+            // SESSION_END_DELAY_MS (same 2-min rule as HA's tm_session_end). A Pause
+            // followed by Resume/Start inside that window keeps the run, so the TIME,
+            // distance and calorie tiles continue instead of restarting at 0:00.
+            mainHandler.removeCallbacks(endSessionRunnable)
+            mainHandler.postDelayed(endSessionRunnable, SESSION_END_DELAY_MS)
         }
     }
 
