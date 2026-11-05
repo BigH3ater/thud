@@ -22,3 +22,18 @@ research/
 
 # Private development instructions (maintainer-specific)
 CLAUDE-PRIVATE.md
+
+# kdk: never commit kit secrets or state (linux-tools dev pipeline "Never committed" list;
+# CI also fails if git ls-files matches \.(pem|crt|key|p12|jks|keystore)$)
+*.pem
+*.crt
+*.key
+*.p12
+*.jks
+*.keystore
+kdk-ha.conf
+secrets/
+vendor/
+backup/
+state/
+*.tar
