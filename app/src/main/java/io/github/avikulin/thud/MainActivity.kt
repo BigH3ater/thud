@@ -62,6 +62,7 @@ class MainActivity : AppCompatActivity() {
         enterImmersive()
         setContentView(R.layout.activity_main)
         wireLauncher()
+        wireControlBar()
         checkOverlayPermissionAndShow()
     }
 
@@ -92,6 +93,23 @@ class MainActivity : AppCompatActivity() {
             hide(WindowInsetsCompat.Type.systemBars())
             systemBarsBehavior =
                 WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        }
+    }
+
+    // ==================== Bottom control bar (kdk) ====================
+
+    // Start / Stop / Resume / Previous. HUDService owns the GlassOS client and the
+    // run lifecycle, so each button just sends it an action intent.
+    private fun wireControlBar() {
+        mapOf(
+            R.id.btnCtlStart to HUDService.ACTION_KDK_START,
+            R.id.btnCtlStop to HUDService.ACTION_KDK_STOP,
+            R.id.btnCtlResume to HUDService.ACTION_KDK_RESUME,
+            R.id.btnCtlPrevious to HUDService.ACTION_KDK_PREVIOUS,
+        ).forEach { (id, action) ->
+            findViewById<View>(id)?.setOnClickListener {
+                startForegroundService(Intent(this, HUDService::class.java).setAction(action))
+            }
         }
     }
 

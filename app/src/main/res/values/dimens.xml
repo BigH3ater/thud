@@ -234,6 +234,11 @@
 
     <dimen name="hud_user_icon_size">40dp</dimen>
     <dimen name="hud_user_name_text_size">18sp</dimen>
+    <dimen name="hud_user_chip_min_width">140dp</dimen>
+    <!-- kdk bottom control bar -->
+    <dimen name="kdk_control_height">72dp</dimen>
+    <dimen name="kdk_control_gap">10dp</dimen>
+    <dimen name="kdk_bottom_margin">28dp</dimen>
     <dimen name="user_popup_item_padding">12dp</dimen>
     <dimen name="user_popup_item_spacing">4dp</dimen>
     <dimen name="user_popup_icon_size">18dp</dimen>
