@@ -1,0 +1,23 @@
+# shellcheck for the kdk install/test scripts (kdk/*.sh).
+name: kdk-lint
+
+on:
+  push:
+    branches: [feat/kdk-integration]
+    paths: ['kdk/**', '.github/workflows/lint.yml']
+  pull_request:
+    paths: ['kdk/**', '.github/workflows/lint.yml']
+
+permissions:
+  contents: read
+
+jobs:
+  shellcheck:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: shellcheck (preinstalled on ubuntu-24.04)
+        run: |
+          shellcheck --version
+          shellcheck -x kdk/*.sh
