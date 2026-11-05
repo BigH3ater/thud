@@ -1,3 +1,5 @@
+import java.util.Base64
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.protobuf)
@@ -41,7 +43,7 @@ val kdkKeystorePass = providers.environmentVariable("KDK_KEYSTORE_PASS").orNull?
 val kdkKeystoreFile: File? = if (kdkKeystoreB64 != null && kdkKeystorePass != null) {
     layout.buildDirectory.file("kdk/thud-kdk.p12").get().asFile.also { f ->
         f.parentFile.mkdirs()
-        f.writeBytes(java.util.Base64.getMimeDecoder().decode(kdkKeystoreB64))
+        f.writeBytes(Base64.getMimeDecoder().decode(kdkKeystoreB64))
     }
 } else null
 
