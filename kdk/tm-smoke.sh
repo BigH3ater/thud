@@ -2,7 +2,7 @@
 # tm-smoke.sh [expected-versionName]
 # Read-only health check of thud on the console. Exit non-zero on any miss.
 # Log: $KIT/state/smoke-<ts>.log. Expected version: arg, else $KIT/apk/current.
-# SMOKE_WAIT (default 90 s) bounds the wait for the process and the log lines.
+# SMOKE_WAIT (default 90 s) bounds the wait for the process, HUDService and the log lines.
 set -euo pipefail
 # shellcheck source=kdk/tm-lib.sh
 . "$(dirname "$(readlink -f "$0")")/tm-lib.sh"
@@ -34,8 +34,13 @@ for _ in $(seq "$WAIT"); do
 done
 if [ -n "$pid" ]; then pass "pidof $PKG = $pid"; else miss "pidof $PKG (not running)"; fi
 
-if sh_ dumpsys activity services "$PKG/.HUDService" | grep -q 'ServiceRecord'; then
-  pass "HUDService running"; else miss "HUDService: no ServiceRecord"; fi
+# The app starts HUDService a few seconds after the process, so wait for it too.
+hud=0
+for _ in $(seq "$WAIT"); do
+  if sh_ dumpsys activity services "$PKG/.HUDService" | grep -q 'ServiceRecord'; then hud=1; break; fi
+  sleep 1
+done
+if [ "$hud" = 1 ]; then pass "HUDService running"; else miss "HUDService: no ServiceRecord after ${WAIT}s"; fi
 
 if sh_ dumpsys activity activities | grep -E 'topResumedActivity|mResumedActivity' | grep -q "$PKG/.MainActivity"; then
   pass "top resumed = $PKG/.MainActivity"; else miss "MainActivity is not the top resumed activity"; fi
