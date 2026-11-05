@@ -2,8 +2,9 @@
 # tm-install.sh [--allow-uninstall] [apk]
 # Install a thud-kdk APK on the console from the kit (default: $KIT/apk/current/).
 #  1. verify <apk>.sha256          2. back up app data to $KIT/backup/<ts>.tar (keep 5)
-#  3. adb install -r               (INSTALL_FAILED_UPDATE_INCOMPATIBLE = signing key
-#     changed: stop, unless --allow-uninstall -> uninstall, install, restore the tar)
+#  3. adb install -r               (INSTALL_FAILED_UPDATE_INCOMPATIBLE = signing key changed,
+#     INSTALL_FAILED_VERSION_DOWNGRADE = rollback: stop, unless --allow-uninstall ->
+#     uninstall, install, restore the tar)
 #  4. place certs/confs only if missing or the sha256 differs
 #  5. make thud the home app again if it is not (an uninstall clears the HOME role)
 #  6. force-stop, start MainActivity, run tm-smoke.sh
@@ -54,8 +55,9 @@ fi
 out="$("$ADB" install -r "$APK" 2>&1 || true)"
 printf '%s\n' "$out" >&2
 if ! printf '%s' "$out" | grep -q '^Success'; then
-  if printf '%s' "$out" | grep -q 'INSTALL_FAILED_UPDATE_INCOMPATIBLE'; then
-    [ "$ALLOW_UNINSTALL" = 1 ] || die "signing key differs from the installed app. Re-run with --allow-uninstall (backup + restore) if intended"
+  # UPDATE_INCOMPATIBLE = signing key changed; VERSION_DOWNGRADE = rollback to a lower versionCode.
+  if printf '%s' "$out" | grep -qE 'INSTALL_FAILED_(UPDATE_INCOMPATIBLE|VERSION_DOWNGRADE)'; then
+    [ "$ALLOW_UNINSTALL" = 1 ] || die "signing key differs or this is a downgrade. Re-run with --allow-uninstall (backup + restore) if intended"
     [ -n "$BACKUP" ] || die "no backup taken; refusing to uninstall"
     log "uninstall $PKG (backup $BACKUP)"
     "$ADB" uninstall "$PKG" >&2

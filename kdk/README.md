@@ -43,7 +43,7 @@ If `adb install -r` fails with `INSTALL_FAILED_UPDATE_INCOMPATIBLE`, the install
 ```sh
 kdk/tm-install.sh "$(ls /mnt/linux-tools/thud/apk/previous/thud-kdk-*.apk)"
 ```
-This is a downgrade, so `-r` fails because the versionCode is lower. Uninstall and restore with `--allow-uninstall`. The home-app role is re-set automatically here too.
+This is a downgrade, so `-r` fails with `INSTALL_FAILED_VERSION_DOWNGRADE` because the versionCode is lower. Uninstall and restore with `--allow-uninstall`. The home-app role is re-set automatically here too.
 
 ## Notes
 - `tm-smoke.sh` on a build older than the CI workflow has no `KdkSmoke` line, so that check fails there. That is expected.
