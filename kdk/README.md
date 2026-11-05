@@ -37,13 +37,13 @@ kdk/tm-install.sh                # install -r keeps certs, profiles, history
 ```
 
 ## Signing key change (one time, or when the key changes)
-If `adb install -r` fails with `INSTALL_FAILED_UPDATE_INCOMPATIBLE`, the installed app was signed with a different key. `tm-install.sh` stops. Re-run it with `--allow-uninstall`: it uninstalls, installs, and restores the backup tar it just took. The certs and confs are then re-placed.
+If `adb install -r` fails with `INSTALL_FAILED_UPDATE_INCOMPATIBLE`, the installed app was signed with a different key. `tm-install.sh` stops. Re-run it with `--allow-uninstall`: it uninstalls, installs, and restores the backup tar it just took. The certs and confs are then re-placed. The uninstall also clears the home-app role; `tm-install.sh` re-sets it (`cmd package set-home-activity`) whenever `cmd shortcut get-default-launcher` does not name thud.
 
 ## Rollback
 ```sh
 kdk/tm-install.sh "$(ls /mnt/linux-tools/thud/apk/previous/thud-kdk-*.apk)"
 ```
-This is a downgrade, so `-r` fails because the versionCode is lower. Uninstall and restore with `--allow-uninstall`.
+This is a downgrade, so `-r` fails because the versionCode is lower. Uninstall and restore with `--allow-uninstall`. The home-app role is re-set automatically here too.
 
 ## Notes
 - `tm-smoke.sh` on a build older than the CI workflow has no `KdkSmoke` line, so that check fails there. That is expected.

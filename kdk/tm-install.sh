@@ -5,7 +5,8 @@
 #  3. adb install -r               (INSTALL_FAILED_UPDATE_INCOMPATIBLE = signing key
 #     changed: stop, unless --allow-uninstall -> uninstall, install, restore the tar)
 #  4. place certs/confs only if missing or the sha256 differs
-#  5. force-stop, start MainActivity, run tm-smoke.sh
+#  5. make thud the home app again if it is not (an uninstall clears the HOME role)
+#  6. force-stop, start MainActivity, run tm-smoke.sh
 set -euo pipefail
 HERE="$(dirname "$(readlink -f "$0")")"
 # shellcheck source=kdk/tm-lib.sh
@@ -88,7 +89,16 @@ place "$KIT/secrets/glassos_client_key.pem"  certs/client.key required
 place "$KIT/secrets/kdk-ha.conf"             kdk-ha.conf
 place "$KIT/conf/kdk-launcher.conf"          kdk-launcher.conf
 
-# --- 5. restart + smoke --------------------------------------------------------
+# --- 5. home role -------------------------------------------------------------
+# The uninstall path drops the HOME role; a plain install -r keeps it, so this is a no-op there.
+if "$ADB" shell cmd shortcut get-default-launcher 2>/dev/null | tr -d '\r' | grep -q "$PKG/"; then
+  log "ok    default launcher = $PKG"
+else
+  log "set home activity $PKG/.MainActivity"
+  "$ADB" shell cmd package set-home-activity "$PKG/.MainActivity" >&2
+fi
+
+# --- 6. restart + smoke --------------------------------------------------------
 "$ADB" shell am force-stop "$PKG"
 "$ADB" shell am start -n "$PKG/.MainActivity" >&2
 exec "$HERE/tm-smoke.sh" "$ver"
